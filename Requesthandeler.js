@@ -3,10 +3,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import UserSchema from "./Models/User.js";
 import jwt from "jsonwebtoken";
-// import SectionSchema from "./Models/Section.js";
 import sendOtpMail from "./Models/Otp.js";
-// import SubSection from "./Models/SubSection.js";
-// import SubSectionItem from "./Models/SubSectionItem.js";
 import BannerSchema from "./Models/Banner.js";
 import fs from "fs";
 import CategorySchema from "./Models/Category.js";
@@ -15,9 +12,11 @@ import TuterSchema from "./Models/Tuter.js";
 import TuterReviewSchema from "./Models/TuterReview.js";
 import sendStudentInviteMail from "./utils/sendStudentInviteMail.js";
 
+import ChatRoomSchema from "./Models/ChatRoom.js";
+import ChatMessageSchema from "./Models/ChatMessage.js";
+import { getIO, isUserOnline } from "./socket.js";
 
-
-
+import FeedbackSchema from "./Models/Feedback.js";
 
 
 
@@ -34,11 +33,11 @@ export function makeOtp() {
 
 export async function REGISTER(req, res) {
   try {
-    const { name, email, pass, cpass } = req.body;
+    const { name, email, phone, pass, cpass } = req.body;
 
-    if (!name || !email || !pass || !cpass) {
+    if (!name || !email || !phone || !pass || !cpass) {
       return res.status(400).json({
-        msg: "name, email, pass, cpass are required",
+        msg: "name, email, phone, pass, cpass are required",
       });
     }
 
@@ -46,19 +45,28 @@ export async function REGISTER(req, res) {
       return res.status(400).json({ msg: "Password mismatch" });
     }
 
-    const existing = await UserSchema.findOne({ email });
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPhone = String(phone).trim();
+
+    const existing = await UserSchema.findOne({
+      $or: [{ email: cleanEmail }, { phone: cleanPhone }],
+    });
 
     if (existing) {
       return res.status(409).json({
-        msg: "User already exists, please login",
+        msg:
+          existing.email === cleanEmail
+            ? "User already exists, please login"
+            : "Phone number already exists",
       });
     }
 
     const hashed = await bcrypt.hash(pass, 10);
 
     const user = await UserSchema.create({
-      name,
-      email,
+      name: name.trim(),
+      email: cleanEmail,
+      phone: cleanPhone,
       pass: hashed,
     });
 
@@ -75,22 +83,34 @@ export async function REGISTER(req, res) {
 
 
 
-//login
+
+
+
 
 
 
 
 export async function LOGIN(req, res) {
   try {
-    const { email, pass } = req.body;
+    const { email, phone, pass } = req.body;
 
-    if (!email || !pass) {
+    // validation
+    if ((!email && !phone) || !pass) {
       return res.status(400).json({
-        msg: "Email and password are required",
+        msg: "Email or phone and password are required",
       });
     }
 
-    const user = await UserSchema.findOne({ email });
+    const cleanEmail = email ? email.toLowerCase().trim() : null;
+    const cleanPhone = phone ? String(phone).trim() : null;
+
+    // find user by email OR phone
+    const user = await UserSchema.findOne({
+      $or: [
+        cleanEmail ? { email: cleanEmail } : null,
+        cleanPhone ? { phone: cleanPhone } : null,
+      ].filter(Boolean),
+    });
 
     if (!user) {
       return res.status(404).json({
@@ -98,12 +118,14 @@ export async function LOGIN(req, res) {
       });
     }
 
+    // check blocked
     if (user.isActive === false) {
       return res.status(403).json({
         msg: "Account blocked by admin",
       });
     }
 
+    // check password
     const success = await bcrypt.compare(pass, user.pass);
 
     if (!success) {
@@ -112,10 +134,12 @@ export async function LOGIN(req, res) {
       });
     }
 
+    // generate token
     const token = jwt.sign(
       {
         id: user._id,
         email: user.email,
+        phone: user.phone,
         syllabus: user.syllabus,
         role: user.role,
       },
@@ -130,12 +154,74 @@ export async function LOGIN(req, res) {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         syllabus: user.syllabus,
         role: user.role,
       },
     });
   } catch (err) {
     console.log("LOGIN error:", err.message);
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+}
+
+
+
+
+//admin change password
+
+export async function CHANGE_PASSWORD(req, res) {
+  try {
+    const { oldPass, newPass, confirmPass } = req.body;
+
+    if (!oldPass || !newPass || !confirmPass) {
+      return res.status(400).json({
+        msg: "oldPass, newPass and confirmPass are required",
+      });
+    }
+
+    if (newPass !== confirmPass) {
+      return res.status(400).json({
+        msg: "New password and confirm password do not match",
+      });
+    }
+
+    const user = await UserSchema.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPass, user.pass);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        msg: "Current password is incorrect",
+      });
+    }
+
+    const samePassword = await bcrypt.compare(newPass, user.pass);
+
+    if (samePassword) {
+      return res.status(400).json({
+        msg: "New password must be different from current password",
+      });
+    }
+
+    user.pass = await bcrypt.hash(newPass, 10);
+    user.passwordChangedAt = new Date();
+
+    await user.save();
+
+    return res.status(200).json({
+      msg: "Password changed successfully",
+    });
+  } catch (err) {
+    console.log("CHANGE_PASSWORD error:", err.message);
     return res.status(500).json({
       error: err.message,
     });
@@ -343,10 +429,13 @@ export async function GET_MY_PROFILE(req, res) {
 
 
 
-// ✅ update logged-in user's profile
+
+
+
+
 export async function UPDATE_MY_PROFILE(req, res) {
   try {
-    const { name, email, syllabus, photo } = req.body;
+    const { name, email, phone, syllabus, photo } = req.body;
 
     const user = await UserSchema.findById(req.user._id);
 
@@ -354,10 +443,11 @@ export async function UPDATE_MY_PROFILE(req, res) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    // ✅ email change ചെയ്യുമ്പോൾ duplicate check
     if (email && email !== user.email) {
+      const cleanEmail = email.toLowerCase().trim();
+
       const existingUser = await UserSchema.findOne({
-        email: email.toLowerCase().trim(),
+        email: cleanEmail,
         _id: { $ne: req.user._id },
       });
 
@@ -365,28 +455,42 @@ export async function UPDATE_MY_PROFILE(req, res) {
         return res.status(409).json({ msg: "Email already in use" });
       }
 
-      user.email = email.toLowerCase().trim();
+      user.email = cleanEmail;
     }
 
-    // ✅ name update
-    if (name) {
+    if (phone !== undefined) {
+      const cleanPhone = String(phone).trim();
+
+      if (cleanPhone) {
+        const existingPhone = await UserSchema.findOne({
+          phone: cleanPhone,
+          _id: { $ne: req.user._id },
+        });
+
+        if (existingPhone) {
+          return res.status(409).json({ msg: "Phone number already in use" });
+        }
+      }
+
+      user.phone = cleanPhone;
+    }
+
+    if (name !== undefined) {
       user.name = name.trim();
     }
 
-    // ✅ syllabus update
     if (syllabus) {
-      const allowedSyllabus = ["state", "cbse"];
+      const allowedSyllabus = ["state", "cbse", "icse"];
 
       if (!allowedSyllabus.includes(syllabus.toLowerCase())) {
         return res.status(400).json({
-          msg: "Invalid syllabus. Choose 'state' or 'cbse'",
+          msg: "Invalid syllabus. Choose state, cbse or icse",
         });
       }
 
       user.syllabus = syllabus.toLowerCase();
     }
 
-    // ✅ photo update
     if (photo !== undefined) {
       user.photo = photo;
     }
@@ -399,15 +503,66 @@ export async function UPDATE_MY_PROFILE(req, res) {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         photo: user.photo,
         isActive: user.isActive,
       },
     });
   } catch (err) {
+    console.log("UPDATE_MY_PROFILE error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export async function DELETE_MY_ACCOUNT(req, res) {
+  try {
+    const user = await UserSchema.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    await FeedbackSchema.deleteMany({ studentId: req.user._id });
+    await TuterReviewSchema.deleteMany({ studentId: req.user._id });
+    await ChatMessageSchema.deleteMany({ senderId: req.user._id });
+    await ChatRoomSchema.deleteMany({
+      $or: [{ studentId: req.user._id }, { adminId: req.user._id }],
+    });
+
+    await UserSchema.findByIdAndDelete(req.user._id);
+
+    return res.status(200).json({
+      msg: "Account deleted successfully",
+    });
+  } catch (err) {
+    console.log("DELETE_MY_ACCOUNT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
 
 
 //adding banner
@@ -1107,220 +1262,6 @@ async function attachRatingAndReviews(tuter) {
 
 
 
-// // admin create tuter
-// export async function CREATE_TUTER(req, res) {
-//   try {
-//     const {
-//       name,
-//       email,
-//       phone,
-//       qualification,
-//       about,
-//       subjects,
-//       categoryId,
-//       courseId,
-//       sectionType,
-//       isActive,
-//     } = req.body;
-
-//     if (!name || !phone || !categoryId || !courseId) {
-//       return res.status(400).json({
-//         msg: "name, phone, categoryId and courseId are required",
-//       });
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-//       return res.status(400).json({ msg: "Invalid categoryId" });
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(courseId)) {
-//       return res.status(400).json({ msg: "Invalid courseId" });
-//     }
-
-//     const category = await CategorySchema.findById(categoryId);
-
-//     if (!category) {
-//       return res.status(404).json({ msg: "Category not found" });
-//     }
-
-//     const course = await CourseSchema.findById(courseId);
-
-//     if (!course) {
-//       return res.status(404).json({ msg: "Course not found" });
-//     }
-
-//     if (String(course.categoryId) !== String(categoryId)) {
-//       return res.status(400).json({
-//         msg: "Selected course does not belong to selected category",
-//       });
-//     }
-
-//     let finalSectionType = "none";
-
-//     if (category.key === "online_tuition") {
-//       if (!sectionType || !["one_to_one", "batch"].includes(sectionType)) {
-//         return res.status(400).json({
-//           msg: "For Online Tuition, sectionType must be one_to_one or batch",
-//         });
-//       }
-
-//       if (course.sectionType !== sectionType) {
-//         return res.status(400).json({
-//           msg: "Selected course does not belong to selected section",
-//         });
-//       }
-
-//       finalSectionType = sectionType;
-//     }
-
-//     const tuter = await TuterSchema.create({
-//       name: name.trim(),
-//       email: email ? email.trim().toLowerCase() : "",
-//       phone: phone.trim(),
-//       qualification: qualification ? qualification.trim() : "",
-//       about: about ? about.trim() : "",
-//       subjects: parseSubjects(subjects),
-//       categoryId,
-//       courseId,
-//       sectionType: finalSectionType,
-//       photo: req.file ? req.file.path.replace(/\\/g, "/") : "",
-//       isActive:
-//         isActive !== undefined
-//           ? isActive === "true" || isActive === true
-//           : true,
-//       createdBy: req.user._id,
-//     });
-
-//     return res.status(201).json({
-//       msg: "Tuter created successfully",
-//       tuter,
-//     });
-//   } catch (err) {
-//     console.log("CREATE_TUTER error:", err.message);
-//     return res.status(500).json({ error: err.message });
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-// export async function CREATE_TUTER(req, res) {
-//   try {
-//     const {
-//       name,
-//       email,
-//       phone,
-//       qualification,
-//       about,
-//       subjects,
-//       categoryId,
-//       courseId,
-//       sectionType,
-//       syllabus,
-//       isActive,
-//     } = req.body;
-
-//     if (!name || !phone || !categoryId || !courseId) {
-//       return res.status(400).json({
-//         msg: "name, phone, categoryId and courseId are required",
-//       });
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-//       return res.status(400).json({ msg: "Invalid categoryId" });
-//     }
-
-//     if (!mongoose.Types.ObjectId.isValid(courseId)) {
-//       return res.status(400).json({ msg: "Invalid courseId" });
-//     }
-
-//     const category = await CategorySchema.findById(categoryId);
-//     if (!category) {
-//       return res.status(404).json({ msg: "Category not found" });
-//     }
-
-//     const course = await CourseSchema.findById(courseId);
-//     if (!course) {
-//       return res.status(404).json({ msg: "Course not found" });
-//     }
-
-//     if (String(course.categoryId) !== String(categoryId)) {
-//       return res.status(400).json({
-//         msg: "Selected course does not belong to selected category",
-//       });
-//     }
-
-//     let finalSectionType = "none";
-//     let finalSyllabus = "none";
-
-//     if (category.key === "online_tuition") {
-//       finalSectionType = "one_to_one";
-
-//       if (course.sectionType !== "one_to_one") {
-//         return res.status(400).json({
-//           msg: "Tutor can be added only to One-to-One course",
-//         });
-//       }
-
-//       if (!syllabus || !["state", "cbse", "icse"].includes(syllabus)) {
-//         return res.status(400).json({
-//           msg: "For Online Tuition, syllabus must be state, cbse or icse",
-//         });
-//       }
-
-//       finalSyllabus = syllabus;
-//     }
-
-//     const tuter = await TuterSchema.create({
-//       name: name.trim(),
-//       email: email ? email.trim().toLowerCase() : "",
-//       phone: phone.trim(),
-//       qualification: qualification ? qualification.trim() : "",
-//       about: about ? about.trim() : "",
-//       subjects: parseSubjects(subjects),
-//       categoryId,
-//       courseId,
-//       sectionType: finalSectionType,
-//       syllabus: finalSyllabus,
-//       photo: req.file ? req.file.path.replace(/\\/g, "/") : "",
-//       isActive:
-//         isActive !== undefined
-//           ? isActive === "true" || isActive === true
-//           : true,
-//       createdBy: req.user._id,
-//     });
-
-//     return res.status(201).json({
-//       msg: "Tuter created successfully",
-//       tuter,
-//     });
-//   } catch (err) {
-//     console.log("CREATE_TUTER error:", err.message);
-//     return res.status(500).json({ error: err.message });
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1946,10 +1887,17 @@ export async function GET_SINGLE_STUDENT_ADMIN(req, res) {
 
 
 
+
+
+
+
+
+
+
 export async function UPDATE_STUDENT_ADMIN(req, res) {
   try {
     const { userId } = req.params;
-    const { name, email, photo } = req.body;
+    const { name, email, phone, photo } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ msg: "Invalid userId" });
@@ -1964,7 +1912,7 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
       return res.status(404).json({ msg: "Student not found" });
     }
 
-    // email duplicate check
+    // ✅ EMAIL DUPLICATE CHECK
     if (email && email !== user.email) {
       const existing = await UserSchema.findOne({
         email: email.toLowerCase().trim(),
@@ -1978,8 +1926,16 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
       user.email = email.toLowerCase().trim();
     }
 
-    if (name) user.name = name.trim();
-    if (photo !== undefined) user.photo = photo;
+    // ✅ UPDATE FIELDS
+    if (name !== undefined) user.name = name.trim();
+
+    if (phone !== undefined) {
+      user.phone = phone.trim();
+    }
+
+    if (photo !== undefined) {
+      user.photo = photo;
+    }
 
     await user.save();
 
@@ -1989,15 +1945,26 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone, // ✅ RETURN ALSO
         photo: user.photo,
         role: user.role,
       },
     });
   } catch (err) {
-    console.log("UPDATE_USER_ADMIN error:", err.message);
+    console.log("UPDATE_STUDENT_ADMIN error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2141,16 +2108,6 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
 
 
 
-
-
-
-
-
-
-//invite student
-
-
-
 function makeInvitePassword() {
   return crypto.randomBytes(6).toString("base64url") + "A1!";
 }
@@ -2162,21 +2119,28 @@ function hashInviteToken(token) {
 // admin invite student
 export async function INVITE_STUDENT_ADMIN(req, res) {
   try {
-    const { name, email } = req.body;
+    const { name, email, phone } = req.body;
 
-    if (!name || !email) {
+    if (!name || !email || !phone) {
       return res.status(400).json({
-        msg: "name and email are required",
+        msg: "name, email and phone are required",
       });
     }
 
+    const cleanName = name.trim();
     const cleanEmail = email.toLowerCase().trim();
+    const cleanPhone = String(phone).trim();
 
-    const existingUser = await UserSchema.findOne({ email: cleanEmail });
+    const existingUser = await UserSchema.findOne({
+      $or: [{ email: cleanEmail }, { phone: cleanPhone }],
+    });
 
     if (existingUser) {
       return res.status(409).json({
-        msg: "Student already registered with this email",
+        msg:
+          existingUser.email === cleanEmail
+            ? "Student already registered with this email"
+            : "Student already registered with this phone number",
       });
     }
 
@@ -2186,8 +2150,9 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
     const inviteToken = jwt.sign(
       {
         type: "student_invite",
-        name: name.trim(),
+        name: cleanName,
         email: cleanEmail,
+        phone: cleanPhone,
         tempPass: tempPassword,
       },
       process.env.JWT_TOKEN,
@@ -2199,8 +2164,9 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
     }/invite-login?token=${encodeURIComponent(inviteToken)}`;
 
     const student = await UserSchema.create({
-      name: name.trim(),
+      name: cleanName,
       email: cleanEmail,
+      phone: cleanPhone,
       pass: hashedPassword,
       role: "student",
       isActive: true,
@@ -2212,7 +2178,7 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
 
     await sendStudentInviteMail({
       to: cleanEmail,
-      name: name.trim(),
+      name: cleanName,
       inviteLink,
     });
 
@@ -2222,6 +2188,7 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
         id: student._id,
         name: student.name,
         email: student.email,
+        phone: student.phone,
         role: student.role,
         isActive: student.isActive,
         inviteTokenExpires: student.inviteTokenExpires,
@@ -2236,20 +2203,6 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // frontend invite-login page calls this API
 export async function VERIFY_STUDENT_INVITE(req, res) {
@@ -2301,10 +2254,15 @@ export async function VERIFY_STUDENT_INVITE(req, res) {
       });
     }
 
+    if (!student.phone && decoded.phone) {
+      student.phone = decoded.phone;
+    }
+
     if (!student.inviteAcceptedAt) {
       student.inviteAcceptedAt = new Date();
-      await student.save();
     }
+
+    await student.save();
 
     return res.status(200).json({
       msg: "Invite verified successfully",
@@ -2312,15 +2270,963 @@ export async function VERIFY_STUDENT_INVITE(req, res) {
         id: student._id,
         name: student.name,
         email: student.email,
+        phone: student.phone,
         role: student.role,
       },
       loginData: {
         email: decoded.email,
+        phone: decoded.phone || student.phone || "",
         pass: decoded.tempPass,
       },
     });
   } catch (err) {
     console.log("VERIFY_STUDENT_INVITE error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+//delete tuter review
+
+
+export async function DELETE_TUTER_REVIEW(req, res) {
+  try {
+    const { tuterId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+      return res.status(400).json({ msg: "Invalid tuterId" });
+    }
+
+    const deletedReview = await TuterReviewSchema.findOneAndDelete({
+      tuterId,
+      studentId: req.user._id,
+    });
+
+    if (!deletedReview) {
+      return res.status(404).json({ msg: "Review not found" });
+    }
+
+    const ratingSummary = await getTuterRatingSummary(tuterId);
+
+    return res.status(200).json({
+      msg: "Review deleted successfully",
+      averageRating: ratingSummary.averageRating,
+      totalReviews: ratingSummary.totalReviews,
+    });
+  } catch (err) {
+    console.log("DELETE_TUTER_REVIEW error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+//chat
+
+function getChatFileType(mimeType = "") {
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.startsWith("video/")) return "video";
+  if (mimeType.startsWith("audio/")) return "audio";
+  return "file";
+}
+
+async function getMainAdmin() {
+  return await UserSchema.findOne({ role: "admin" }).select("_id name email role photo");
+}
+
+
+
+
+
+
+
+export async function CREATE_CONNECT_REQUEST_CHAT(req, res) {
+  try {
+    const { tuterId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+      return res.status(400).json({ msg: "Invalid tuterId" });
+    }
+
+    const student = await UserSchema.findById(req.user._id).select(
+      "name email role photo"
+    );
+
+    if (!student || student.role !== "student") {
+      return res.status(403).json({ msg: "Only student can send connect request" });
+    }
+
+    const admin = await getMainAdmin();
+
+    if (!admin) {
+      return res.status(404).json({ msg: "Admin not found" });
+    }
+
+    const tuter = await TuterSchema.findById(tuterId)
+      .populate("categoryId", "title key")
+      .populate("courseId", "name title sectionType");
+
+    if (!tuter) {
+      return res.status(404).json({ msg: "Tuter not found" });
+    }
+
+    let room = await ChatRoomSchema.findOne({
+      studentId: student._id,
+      adminId: admin._id,
+    });
+
+    if (!room) {
+      room = await ChatRoomSchema.create({
+        studentId: student._id,
+        adminId: admin._id,
+      });
+    }
+
+    const courseName = tuter.courseId?.name || tuter.courseId?.title || "Not added";
+    const categoryName = tuter.categoryId?.title || "Not added";
+    const syllabusName =
+      tuter.syllabus && tuter.syllabus !== "none" ? tuter.syllabus : "Not added";
+
+    const studentText = `Hello, my name is ${
+      student.name || "Student"
+    }. I would like to connect with this tutor. Please help me with the next steps.`;
+
+    const adminText = `${student.name || "Student"} has requested to connect with this tutor. Please review the tutor details and contact the student with the next steps.`;
+
+    const studentConnectCard = {
+      tuterId: tuter._id,
+      title: "Tutor Details",
+      image: tuter.photo || "",
+      name: tuter.name || "Not added",
+      qualification: tuter.qualification || "Not added",
+      courseName,
+      categoryName,
+      syllabus: syllabusName,
+    };
+
+    const adminConnectCard = {
+      ...studentConnectCard,
+      email: tuter.email || "Not added",
+      phone: tuter.phone || "Not added",
+    };
+
+    const studentMessage = await ChatMessageSchema.create({
+      roomId: room._id,
+      senderId: student._id,
+      receiverId: admin._id,
+      messageType: "connect_card",
+      visibleFor: "student",
+      text: studentText,
+      connectCard: studentConnectCard,
+    });
+
+    const adminMessage = await ChatMessageSchema.create({
+      roomId: room._id,
+      senderId: student._id,
+      receiverId: admin._id,
+      messageType: "connect_card",
+      visibleFor: "admin",
+      text: adminText,
+      connectCard: adminConnectCard,
+    });
+
+    room.lastMessage = "New connect request";
+    room.lastMessageAt = new Date();
+    await room.save();
+
+    const populatedStudentMessage = await ChatMessageSchema.findById(studentMessage._id)
+      .populate("senderId", "name email role photo")
+      .populate("receiverId", "name email role photo");
+
+    const populatedAdminMessage = await ChatMessageSchema.findById(adminMessage._id)
+      .populate("senderId", "name email role photo")
+      .populate("receiverId", "name email role photo");
+
+    const io = getIO();
+
+    if (io) {
+      io.to(String(room._id)).emit("new_message", populatedStudentMessage);
+      io.to(String(room._id)).emit("newMessage", populatedStudentMessage);
+
+      io.emit("chat_list_updated", {
+        roomId: room._id,
+        studentId: student._id,
+        adminId: admin._id,
+      });
+    }
+
+    return res.status(201).json({
+      msg: "Connect request sent successfully",
+      room,
+      message: populatedStudentMessage,
+      adminMessage: populatedAdminMessage,
+    });
+  } catch (err) {
+    console.log("CREATE_CONNECT_REQUEST_CHAT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+export async function CREATE_OR_GET_ADMIN_STUDENT_CHAT(req, res) {
+  try {
+    const { studentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ msg: "Invalid studentId" });
+    }
+
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ msg: "Only admin can create this chat" });
+    }
+
+    const admin = await UserSchema.findById(req.user._id).select(
+      "name email role photo"
+    );
+
+    const student = await UserSchema.findOne({
+      _id: studentId,
+      role: "student",
+    }).select("name email role photo");
+
+    if (!student) {
+      return res.status(404).json({ msg: "Student not found" });
+    }
+
+    let room = await ChatRoomSchema.findOne({
+      studentId: student._id,
+      adminId: admin._id,
+    });
+
+    if (!room) {
+      room = await ChatRoomSchema.create({
+        studentId: student._id,
+        adminId: admin._id,
+        lastMessage: "",
+        lastMessageAt: new Date(),
+      });
+    }
+
+    const populatedRoom = await ChatRoomSchema.findById(room._id)
+      .populate("studentId", "name email role photo")
+      .populate("adminId", "name email role photo");
+
+    return res.status(200).json({
+      msg: "Admin student chat room ready",
+      room: populatedRoom,
+    });
+  } catch (err) {
+    console.log("CREATE_OR_GET_ADMIN_STUDENT_CHAT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export async function GET_MY_CHAT_ROOMS(req, res) {
+  try {
+    const query =
+      req.user.role === "admin"
+        ? { adminId: req.user._id }
+        : { studentId: req.user._id };
+
+    const rooms = await ChatRoomSchema.find(query)
+      .populate("studentId", "name email role photo")
+      .populate("adminId", "name email role photo")
+      .sort({ lastMessageAt: -1 });
+
+    const data = rooms.map((room) => {
+      const plain = room.toObject();
+
+      return {
+        ...plain,
+        studentOnline: isUserOnline(plain.studentId?._id),
+        adminOnline: isUserOnline(plain.adminId?._id),
+      };
+    });
+
+    return res.status(200).json({
+      msg: "Chat rooms fetched successfully",
+      count: data.length,
+      rooms: data,
+    });
+  } catch (err) {
+    console.log("GET_MY_CHAT_ROOMS error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+export async function CREATE_OR_GET_STUDENT_ADMIN_CHAT(req, res) {
+  try {
+    const student = await UserSchema.findById(req.user._id).select(
+      "name email role photo"
+    );
+
+    if (!student || student.role !== "student") {
+      return res.status(403).json({
+        msg: "Only student can create student-admin chat",
+      });
+    }
+
+    const admin = await getMainAdmin();
+
+    if (!admin) {
+      return res.status(404).json({ msg: "Admin not found" });
+    }
+
+    let room = await ChatRoomSchema.findOne({
+      studentId: student._id,
+      adminId: admin._id,
+    });
+
+    if (!room) {
+      room = await ChatRoomSchema.create({
+        studentId: student._id,
+        adminId: admin._id,
+        lastMessage: "",
+        lastMessageAt: new Date(),
+      });
+    }
+
+    const populatedRoom = await ChatRoomSchema.findById(room._id)
+      .populate("studentId", "name email role photo")
+      .populate("adminId", "name email role photo");
+
+    return res.status(200).json({
+      msg: "Student admin chat room ready",
+      room: populatedRoom,
+    });
+  } catch (err) {
+    console.log("CREATE_OR_GET_STUDENT_ADMIN_CHAT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+export async function GET_CHAT_MESSAGES(req, res) {
+  try {
+    const { roomId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ msg: "Invalid roomId" });
+    }
+
+    const room = await ChatRoomSchema.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({ msg: "Chat room not found" });
+    }
+
+    const isAllowed =
+      String(room.studentId) === String(req.user._id) ||
+      String(room.adminId) === String(req.user._id);
+
+    if (!isAllowed) {
+      return res.status(403).json({ msg: "You cannot access this chat" });
+    }
+
+    const visibleFilter =
+      req.user.role === "admin"
+        ? { visibleFor: { $in: ["both", "admin"] } }
+        : { visibleFor: { $in: ["both", "student"] } };
+
+    const messages = await ChatMessageSchema.find({
+      roomId,
+      ...visibleFilter,
+    })
+      .populate("senderId", "name email role photo")
+      .populate("receiverId", "name email role photo")
+      .sort({ createdAt: 1 });
+
+    return res.status(200).json({
+      msg: "Messages fetched successfully",
+      room,
+      count: messages.length,
+      messages,
+    });
+  } catch (err) {
+    console.log("GET_CHAT_MESSAGES error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// text / emoji message
+export async function SEND_CHAT_MESSAGE(req, res) {
+  try {
+    const { roomId } = req.params;
+    const { text, messageType } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ msg: "Invalid roomId" });
+    }
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ msg: "Message is required" });
+    }
+
+    const room = await ChatRoomSchema.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({ msg: "Chat room not found" });
+    }
+
+    const isStudent = String(room.studentId) === String(req.user._id);
+    const isAdmin = String(room.adminId) === String(req.user._id);
+
+    if (!isStudent && !isAdmin) {
+      return res.status(403).json({ msg: "You cannot send message to this chat" });
+    }
+
+    const receiverId = isStudent ? room.adminId : room.studentId;
+
+    const finalMessageType = messageType === "emoji" ? "emoji" : "text";
+
+    const message = await ChatMessageSchema.create({
+      roomId,
+      senderId: req.user._id,
+      receiverId,
+      messageType: finalMessageType,
+      text: text.trim(),
+    });
+
+    room.lastMessage = text.trim();
+    room.lastMessageAt = new Date();
+    await room.save();
+
+    const populatedMessage = await ChatMessageSchema.findById(message._id)
+      .populate("senderId", "name email role photo")
+      .populate("receiverId", "name email role photo");
+
+    const io = getIO();
+
+    if (io) {
+      io.to(String(roomId)).emit("new_message", populatedMessage);
+      io.emit("chat_list_updated", { roomId });
+    }
+
+    return res.status(201).json({
+      msg: "Message sent successfully",
+      message: populatedMessage,
+    });
+  } catch (err) {
+    console.log("SEND_CHAT_MESSAGE error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+// image/video/audio/file upload message
+export async function SEND_CHAT_FILE_MESSAGE(req, res) {
+  try {
+    const { roomId } = req.params;
+    const { text } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ msg: "Invalid roomId" });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ msg: "At least one file is required" });
+    }
+
+    const room = await ChatRoomSchema.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({ msg: "Chat room not found" });
+    }
+
+    const isStudent = String(room.studentId) === String(req.user._id);
+    const isAdmin = String(room.adminId) === String(req.user._id);
+
+    if (!isStudent && !isAdmin) {
+      return res.status(403).json({ msg: "You cannot send file to this chat" });
+    }
+
+    const receiverId = isStudent ? room.adminId : room.studentId;
+
+    const files = req.files.map((file) => ({
+      originalName: file.originalname,
+      fileName: file.filename,
+      path: file.path.replace(/\\/g, "/"),
+      mimeType: file.mimetype,
+      size: file.size,
+      fileType: getChatFileType(file.mimetype),
+    }));
+
+    const message = await ChatMessageSchema.create({
+      roomId,
+      senderId: req.user._id,
+      receiverId,
+      messageType: "file",
+      text: text ? text.trim() : "",
+      files,
+    });
+
+    room.lastMessage = files.length === 1 ? "File sent" : `${files.length} files sent`;
+    room.lastMessageAt = new Date();
+    await room.save();
+
+    const populatedMessage = await ChatMessageSchema.findById(message._id)
+      .populate("senderId", "name email role photo")
+      .populate("receiverId", "name email role photo");
+
+    const io = getIO();
+
+    if (io) {
+      io.to(String(roomId)).emit("new_message", populatedMessage);
+      io.emit("chat_list_updated", { roomId });
+    }
+
+    return res.status(201).json({
+      msg: "File message sent successfully",
+      message: populatedMessage,
+    });
+  } catch (err) {
+    console.log("SEND_CHAT_FILE_MESSAGE error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+// mark read
+export async function MARK_CHAT_MESSAGES_READ(req, res) {
+  try {
+    const { roomId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ msg: "Invalid roomId" });
+    }
+
+    const room = await ChatRoomSchema.findById(roomId);
+
+    if (!room) {
+      return res.status(404).json({ msg: "Chat room not found" });
+    }
+
+    const isAllowed =
+      String(room.studentId) === String(req.user._id) ||
+      String(room.adminId) === String(req.user._id);
+
+    if (!isAllowed) {
+      return res.status(403).json({ msg: "You cannot access this chat" });
+    }
+
+    await ChatMessageSchema.updateMany(
+      {
+        roomId,
+        receiverId: req.user._id,
+        isRead: false,
+      },
+      { isRead: true }
+    );
+
+    return res.status(200).json({
+      msg: "Messages marked as read",
+    });
+  } catch (err) {
+    console.log("MARK_CHAT_MESSAGES_READ error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//update chatmessage
+
+
+
+export async function UPDATE_CHAT_MESSAGE(req, res) {
+  try {
+    const { messageId } = req.params;
+    const { message, text } = req.body;
+
+    const newText = message || text;
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return res.status(400).json({ msg: "Invalid messageId" });
+    }
+
+    if (!newText || !newText.trim()) {
+      return res.status(400).json({ msg: "Message text is required" });
+    }
+
+    const chatMessage = await ChatMessageSchema.findById(messageId);
+
+    if (!chatMessage) {
+      return res.status(404).json({ msg: "Message not found" });
+    }
+
+    if (String(chatMessage.senderId) !== String(req.user._id)) {
+      return res.status(403).json({ msg: "You can edit only your messages" });
+    }
+
+    if (
+      chatMessage.messageType === "connect_request" ||
+      chatMessage.isAutomatic === true
+    ) {
+      return res.status(403).json({ msg: "Automatic message cannot be edited" });
+    }
+
+    chatMessage.message = newText.trim();
+    chatMessage.text = newText.trim();
+    chatMessage.isEdited = true;
+    chatMessage.editedAt = new Date();
+
+    await chatMessage.save();
+
+    const io = getIO();
+    io.to(String(chatMessage.roomId)).emit("messageUpdated", chatMessage);
+
+    return res.status(200).json({
+      msg: "Message updated successfully",
+      message: chatMessage,
+    });
+  } catch (err) {
+    console.log("UPDATE_CHAT_MESSAGE error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+//delete chatmessage
+
+
+
+
+export async function DELETE_CHAT_MESSAGE(req, res) {
+  try {
+    const { messageId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return res.status(400).json({ msg: "Invalid messageId" });
+    }
+
+    const chatMessage = await ChatMessageSchema.findById(messageId);
+
+    if (!chatMessage) {
+      return res.status(404).json({ msg: "Message not found" });
+    }
+
+    if (String(chatMessage.senderId) !== String(req.user._id)) {
+      return res.status(403).json({ msg: "You can delete only your messages" });
+    }
+
+    if (
+      chatMessage.messageType === "connect_request" ||
+      chatMessage.isAutomatic === true
+    ) {
+      return res.status(403).json({ msg: "Automatic message cannot be deleted" });
+    }
+
+    const roomId = chatMessage.roomId;
+
+    await ChatMessageSchema.findByIdAndDelete(messageId);
+
+    const io = getIO();
+    io.to(String(roomId)).emit("messageDeleted", {
+      messageId,
+      roomId,
+    });
+
+    return res.status(200).json({
+      msg: "Message deleted successfully",
+      messageId,
+      roomId,
+    });
+  } catch (err) {
+    console.log("DELETE_CHAT_MESSAGE error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ================= ADMIN DASHBOARD =================
+
+export async function ADMIN_DASHBOARD(req, res) {
+  try {
+    const now = new Date();
+
+    // 24 hours ago
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    // 30 days ago
+    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // ================= 1. NEW SIGNUPS (24h) =================
+    const newSignups = await UserSchema.countDocuments({
+      createdAt: { $gte: last24Hours },
+    });
+
+    // ================= 2. TOTAL STUDENTS =================
+    const totalStudents = await UserSchema.countDocuments({
+      role: "student",
+    });
+
+    // ================= 3. ACTIVE TUTORS =================
+    const activeTutors = await TuterSchema.countDocuments({
+      isActive: true,
+    });
+
+    // ================= 4. LAST 30 DAYS GRAPH =================
+    const last30DaysData = await UserSchema.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: last30Days },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1,
+          "_id.day": 1,
+        },
+      },
+    ]);
+
+    // format graph data
+    const graphData = last30DaysData.map((item) => {
+      return {
+        date: `${item._id.year}-${item._id.month}-${item._id.day}`,
+        users: item.count,
+      };
+    });
+
+    return res.status(200).json({
+      msg: "Dashboard data fetched successfully",
+      data: {
+        newSignups,
+        totalStudents,
+        activeTutors,
+        graphData,
+      },
+    });
+  } catch (err) {
+    console.log("ADMIN_DASHBOARD error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+//website feedback
+
+
+export async function ADD_FEEDBACK(req, res) {
+  try {
+    const { rating, message } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        msg: "Rating must be between 1 and 5",
+      });
+    }
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({
+        msg: "Feedback message is required",
+      });
+    }
+
+    const feedback = await FeedbackSchema.findOneAndUpdate(
+      { studentId: req.user._id },
+      {
+        rating: Number(rating),
+        message: message.trim(),
+      },
+      {
+        new: true,
+        upsert: true,
+      }
+    ).populate("studentId", "name email photo");
+
+    return res.status(200).json({
+      msg: "Feedback submitted successfully",
+      feedback,
+    });
+  } catch (err) {
+    console.log("ADD_FEEDBACK error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+//get all feedback
+
+export async function GET_ALL_FEEDBACK(req, res) {
+  try {
+    const feedbacks = await FeedbackSchema.find()
+      .populate("studentId", "name email photo")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      msg: "All feedback fetched successfully",
+      count: feedbacks.length,
+      feedbacks,
+    });
+  } catch (err) {
+    console.log("GET_ALL_FEEDBACK_ADMIN error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+//get may feedback
+
+export async function GET_MY_FEEDBACK(req, res) {
+  try {
+    const feedback = await FeedbackSchema.findOne({
+      studentId: req.user._id,
+    }).populate("studentId", "name email photo");
+
+    return res.status(200).json({
+      msg: "My feedback fetched successfully",
+      feedback,
+    });
+  } catch (err) {
+    console.log("GET_MY_FEEDBACK error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }

@@ -9,7 +9,7 @@ import categoryUpload from "./Middleware/categoryUpload.js";
 import courseUpload from "./Middleware/courseUpload.js";
 import tuterUpload from "./Middleware/tuterUpload.js";
 import studentOnly from "./Middleware/studentOnly.js";
-
+import chatUpload from "./Middleware/chatUpload.js";
 
 
 
@@ -19,7 +19,7 @@ const router = Router();
 
 router.route("/register").post(rh.REGISTER);
 router.route("/login_user").post(rh.LOGIN);
-
+router.route("/change_password").put(Auth, rh.CHANGE_PASSWORD);
 router.route("/user_forgoat_password_send_otp").post(rh.FORGOT_PASSWORD_SEND_OTP);
 router.route("/user_forgoat_password_verify_otp").post(rh.FORGOT_PASSWORD_VERIFY_OTP);
 router.route("/user_reset_password").post(rh.RESET_PASSWORD);
@@ -27,6 +27,7 @@ router.route("/user_reset_password").post(rh.RESET_PASSWORD);
 router.route("/upload_profile_photo").put(Auth, rh.UPLOAD_PROFILE_PHOTO);
 router.route("/my_profile").get(Auth, rh.GET_MY_PROFILE);
 router.route("/update_my_profile").put(Auth, rh.UPDATE_MY_PROFILE);
+router.route("/delete_my_account").delete(Auth,studentOnly, rh.DELETE_MY_ACCOUNT);
 
 // ================= BANNER =================
 router.route("/admin/banner/create").post(Auth,adminOnly,bannerUpload.single("image"),rh.CREATE_BANNER);
@@ -67,7 +68,7 @@ router.route("/tuter/by-category/:categoryId").get(Auth, rh.GET_TUTERS_BY_CATEGO
 router.route("/tuter/by-course/:courseId").get(Auth, rh.GET_TUTERS_BY_COURSE);
 router.route("/tuter/:tuterId").get(Auth, rh.GET_SINGLE_TUTER);
 router.route("/tuter/:tuterId/review").post(Auth, studentOnly, rh.ADD_TUTER_REVIEW);
-
+router.route("/tuter/:tuterId/review").delete(Auth, studentOnly, rh.DELETE_TUTER_REVIEW);
 
 
 
@@ -85,6 +86,64 @@ router.route("/admin/student/all").get(Auth, adminOnly, rh.GET_ALL_STUDENTS_ADMI
 router.route("/admin/student/:userId").get(Auth, adminOnly, rh.GET_SINGLE_STUDENT_ADMIN);
 router.route("/admin/student/update/:userId").put(Auth, adminOnly, rh.UPDATE_STUDENT_ADMIN);
 router.route("/admin/student/delete/:userId").delete(Auth, adminOnly, rh.DELETE_STUDENT_ADMIN);
+
+
+
+
+
+
+
+
+
+
+
+
+// ================= CHAT =================
+router.route("/chat/student-admin-room").post(Auth, studentOnly, rh.CREATE_OR_GET_STUDENT_ADMIN_CHAT);
+
+router.route("/chat/connect-request/:tuterId").post(Auth, studentOnly, rh.CREATE_CONNECT_REQUEST_CHAT);
+
+router.route("/chat/rooms").get(Auth, rh.GET_MY_CHAT_ROOMS);
+
+router.route("/chat/messages/:roomId").get(Auth, rh.GET_CHAT_MESSAGES);
+
+router.route("/chat/message/:roomId").post(Auth, rh.SEND_CHAT_MESSAGE);
+
+router.route("/chat/file-message/:roomId").post(
+  Auth,
+  chatUpload.array("files", 10),
+  rh.SEND_CHAT_FILE_MESSAGE
+);
+
+router.route("/chat/read/:roomId").patch(Auth, rh.MARK_CHAT_MESSAGES_READ);
+
+router.route("/chat/message/:messageId").patch(Auth, rh.UPDATE_CHAT_MESSAGE);
+router.route("/chat/message/:messageId").delete(Auth, rh.DELETE_CHAT_MESSAGE);
+
+
+
+router.route("/chat/admin-student-room/:studentId").post(Auth, adminOnly, rh.CREATE_OR_GET_ADMIN_STUDENT_CHAT);
+// ================= ADMIN DASHBOARD =================
+router.route("/admin/dashboard").get(Auth, adminOnly, rh.ADMIN_DASHBOARD);
+
+
+
+
+// ================= FEEDBACK =================
+
+// student add/update feedback
+router.route("/feedback").post(Auth, studentOnly, rh.ADD_FEEDBACK);
+
+// student get own feedback
+router.route("/feedback/my").get(Auth, studentOnly, rh.GET_MY_FEEDBACK);
+
+// user get all feedback
+router.route("/get/feedback/all").get(Auth, rh.GET_ALL_FEEDBACK);
+
+
+
+
+
 
 
 

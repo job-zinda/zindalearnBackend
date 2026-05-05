@@ -4,7 +4,6 @@ import fs from "fs";
 
 const uploadDir = "uploads/banners";
 
-// folder ഇല്ലെങ്കിൽ create ചെയ്യുക
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
