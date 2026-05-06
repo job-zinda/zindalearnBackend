@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import express from "express";
 import http from "http";
 import path from "path";
-import connection from "./connection.js";
+import connection from "./Connection.js";
 import router from "./Router.js";
 import seedDefaultCategories from "./seedDefaultCategories.js";
 import { initSocket } from "./socket.js";
