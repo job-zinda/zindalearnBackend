@@ -17,6 +17,19 @@ import chatUpload from "./Middleware/chatUpload.js";
 
 const router = Router();
 
+
+
+router.post(
+  "/chat/student-admin-room",
+  Auth,
+  studentOnly,
+  rh.CREATE_OR_GET_STUDENT_ADMIN_CHAT
+);
+
+
+
+
+
 router.route("/register").post(rh.REGISTER);
 router.route("/login_user").post(rh.LOGIN);
 router.route("/change_password").put(Auth, rh.CHANGE_PASSWORD);
@@ -100,7 +113,7 @@ router.route("/admin/student/delete/:userId").delete(Auth, adminOnly, rh.DELETE_
 
 // ================= CHAT =================
 // student admin room route
-router.route("/chat/student-admin-room").post(Auth, studentOnly, rh.CREATE_OR_GET_STUDENT_ADMIN_CHAT);
+// router.route("/chat/student-admin-room").post(Auth, studentOnly, rh.CREATE_OR_GET_STUDENT_ADMIN_CHAT);
 router.route("/chat/connect-request/:tuterId").post(Auth, studentOnly, rh.CREATE_CONNECT_REQUEST_CHAT);
 
 router.route("/chat/rooms").get(Auth, rh.GET_MY_CHAT_ROOMS);
