@@ -6792,24 +6792,6 @@ export async function GET_ALL_FEEDBACK(req, res) {
 
 
 
-//get all feedback
-
-export async function GET_ALL_FEEDBACK(req, res) {
-  try {
-    const feedbacks = await FeedbackSchema.find()
-      .populate("studentId", "name email photo")
-      .sort({ createdAt: -1 });
-
-    return res.status(200).json({
-      msg: "All feedback fetched successfully",
-      count: feedbacks.length,
-      feedbacks,
-    });
-  } catch (err) {
-    console.log("GET_ALL_FEEDBACK_ADMIN error:", err.message);
-    return res.status(500).json({ error: err.message });
-  }
-}
 
 
 
