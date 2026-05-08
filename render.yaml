@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: zindalearn-backend
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_TOKEN
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: EMAIL
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
