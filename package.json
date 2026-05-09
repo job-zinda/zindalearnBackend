@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "start": "node Server.js",
+    "dev": "nodemon Server.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
