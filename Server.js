@@ -125,31 +125,30 @@ import connection from "./Connection.js";
 import router from "./Router.js";
 import seedDefaultCategories from "./seedDefaultCategories.js";
 import { initSocket } from "./socket.js";
+import { isOriginAllowed } from "./utils/corsOrigins.js";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://zinda-learn-frontend.vercel.app",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+const corsOptions = {
+  origin(origin, callback) {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  optionsSuccessStatus: 204,
+};
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked: ${origin}`));
-      }
-    },
-    credentials: true,
-  })
-);
+// Express 5: do not use app.options('*', …) — bare `*` is invalid path-to-regexp and crashes or misroutes preflight.
+// `app.use(cors(...))` already handles OPTIONS preflight for all paths.
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));

@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { isOriginAllowed } from "./utils/corsOrigins.js";
 
 let io;
 const onlineUsers = new Map();
@@ -6,8 +7,15 @@ const onlineUsers = new Map();
 export function initSocket(server) {
   io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      origin(origin, callback) {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
       credentials: true,
+      methods: ["GET", "POST"],
     },
   });
 
