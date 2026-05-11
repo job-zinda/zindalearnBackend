@@ -248,6 +248,84 @@
 
 
 
+// import nodemailer from "nodemailer";
+
+// const sendOtpMail = async (email, otp) => {
+//   try {
+//     const transporter = nodemailer.createTransport({
+//       host: process.env.MAIL_HOST,
+//       port: Number(process.env.MAIL_PORT),
+//       secure: false,
+//       auth: {
+//         user: process.env.MAIL_USER,
+//         pass: process.env.MAIL_PASS,
+//       },
+
+//       connectionTimeout: 60000,
+//       greetingTimeout: 60000,
+//       socketTimeout: 60000,
+//     });
+
+//     await transporter.verify();
+
+//     await transporter.sendMail({
+//       from: `"Zindalearn" <${process.env.MAIL_FROM}>`,
+//       to: email,
+//       subject: "OTP Verification",
+//       text: `Your OTP is: ${otp}`,
+//       html: `
+//         <div style="font-family: Arial, sans-serif;">
+//           <h2>OTP Verification</h2>
+//           <p>Your OTP is:</p>
+//           <h1 style="color:#6c2bd9;">${otp}</h1>
+//         </div>
+//       `,
+//     });
+
+//     console.log("✅ OTP Mail Sent");
+//   } catch (error) {
+//     console.log("❌ MAIL ERROR:", error);
+//     throw error;
+//   }
+// };
+
+// export default sendOtpMail;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import nodemailer from "nodemailer";
 
 const sendOtpMail = async (email, otp) => {
@@ -260,32 +338,32 @@ const sendOtpMail = async (email, otp) => {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
       },
-
-      connectionTimeout: 60000,
-      greetingTimeout: 60000,
-      socketTimeout: 60000,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     await transporter.verify();
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"Zindalearn" <${process.env.MAIL_FROM}>`,
       to: email,
       subject: "OTP Verification",
-      text: `Your OTP is: ${otp}`,
+      text: `Your OTP is ${otp}`,
       html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>OTP Verification</h2>
-          <p>Your OTP is:</p>
-          <h1 style="color:#6c2bd9;">${otp}</h1>
+        <div style="font-family: Arial">
+          <h2>Your OTP</h2>
+          <h1>${otp}</h1>
         </div>
       `,
     });
 
-    console.log("✅ OTP Mail Sent");
-  } catch (error) {
-    console.log("❌ MAIL ERROR:", error);
-    throw error;
+    console.log("MAIL SENT:", info.messageId);
+
+    return true;
+  } catch (err) {
+    console.log("MAIL ERROR:", err);
+    return false;
   }
 };
 
