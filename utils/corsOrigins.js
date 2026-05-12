@@ -14,6 +14,8 @@ function buildExplicitOrigins() {
   const defaults = [
     "http://localhost:5173",
     "http://localhost:3000",
+    "https://www.zindaonlineschool.com",
+    "https://zindaonlineschool.com",
     "https://zinda-learn-frontend.vercel.app",
     "https://jobzinda.vercel.app",
   ];
