@@ -1,13 +1,7 @@
 {
-  "name": "zindalearn-backend",
-  "private": true,
-  "type": "module",
   "scripts": {
     "start": "node Server.js",
     "dev": "nodemon Server.js"
-  },
-  "engines": {
-    "node": "20.x"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

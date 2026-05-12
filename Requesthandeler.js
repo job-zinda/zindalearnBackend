@@ -5705,6 +5705,118 @@ function hashInviteToken(token) {
 }
 
 // admin invite student
+// export async function INVITE_STUDENT_ADMIN(req, res) {
+//   try {
+//     const { name, email, phone } = req.body;
+
+//     if (!name || !email || !phone) {
+//       return res.status(400).json({
+//         msg: "name, email and phone are required",
+//       });
+//     }
+
+//     const cleanName = name.trim();
+//     const cleanEmail = email.toLowerCase().trim();
+//     const cleanPhone = String(phone).trim();
+
+//     const existingUser = await UserSchema.findOne({
+//       $or: [{ email: cleanEmail }, { phone: cleanPhone }],
+//     });
+
+//     if (existingUser) {
+//       return res.status(409).json({
+//         msg:
+//           existingUser.email === cleanEmail
+//             ? "Student already registered with this email"
+//             : "Student already registered with this phone number",
+//       });
+//     }
+
+//     const tempPassword = makeInvitePassword();
+//     const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+//     const inviteToken = jwt.sign(
+//       {
+//         type: "student_invite",
+//         name: cleanName,
+//         email: cleanEmail,
+//         phone: cleanPhone,
+//         tempPass: tempPassword,
+//       },
+//       process.env.JWT_TOKEN,
+//       { expiresIn: "7d" }
+//     );
+
+//     const inviteLink = `${
+//       process.env.FRONTEND_URL || "http://localhost:5173"
+//     }/invite-login?token=${encodeURIComponent(inviteToken)}`;
+
+//     const student = await UserSchema.create({
+//       name: cleanName,
+//       email: cleanEmail,
+//       phone: cleanPhone,
+//       pass: hashedPassword,
+//       role: "student",
+//       isActive: true,
+//       invitedBy: req.user._id,
+//       inviteTokenHash: hashInviteToken(inviteToken),
+//       inviteTokenExpires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+//       inviteAcceptedAt: null,
+//     });
+
+//     await sendStudentInviteMail({
+//       to: cleanEmail,
+//       name: cleanName,
+//       inviteLink,
+//     });
+
+//     return res.status(201).json({
+//       msg: "Student invited successfully",
+//       student: {
+//         id: student._id,
+//         name: student.name,
+//         email: student.email,
+//         phone: student.phone,
+//         role: student.role,
+//         isActive: student.isActive,
+//         inviteTokenExpires: student.inviteTokenExpires,
+//       },
+
+//       // development testing only
+//       inviteLink,
+//       tempPassword,
+//     });
+//   } catch (err) {
+//     console.log("INVITE_STUDENT_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// admin invite student
 export async function INVITE_STUDENT_ADMIN(req, res) {
   try {
     const { name, email, phone } = req.body;
@@ -5764,14 +5876,27 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
       inviteAcceptedAt: null,
     });
 
-    await sendStudentInviteMail({
-      to: cleanEmail,
-      name: cleanName,
-      inviteLink,
-    });
+    let mailSent = true;
+    let mailErrorMessage = null;
+
+    try {
+      await sendStudentInviteMail({
+        to: cleanEmail,
+        name: cleanName,
+        inviteLink,
+      });
+    } catch (mailError) {
+      mailSent = false;
+      mailErrorMessage = mailError.message;
+      console.log("Invite mail failed:", mailError.message);
+    }
 
     return res.status(201).json({
-      msg: "Student invited successfully",
+      msg: mailSent
+        ? "Student invited successfully"
+        : "Student created, but invite mail failed",
+      mailSent,
+      mailError: mailErrorMessage,
       student: {
         id: student._id,
         name: student.name,
@@ -5791,7 +5916,6 @@ export async function INVITE_STUDENT_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
 
 
 
