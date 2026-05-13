@@ -5876,6 +5876,187 @@ export async function GET_SINGLE_TUTER(req, res) {
 
 
 
+// export async function UPDATE_TUTER(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+
+//     const {
+//       name,
+//       email,
+//       phone,
+//       qualification,
+//       about,
+//       subjects,
+//       categoryId,
+//       sectionType,
+//       syllabus,
+//       isActive,
+//     } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tuterId" });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tuter not found" });
+//     }
+
+//     const finalCategoryId = categoryId || tuter.categoryId;
+
+//     const incomingCourseIds = parseCourseIds(req.body);
+
+//     const existingCourseIds =
+//       Array.isArray(tuter.courseIds) && tuter.courseIds.length
+//         ? tuter.courseIds.map((id) => String(id))
+//         : tuter.courseId
+//         ? [String(tuter.courseId)]
+//         : [];
+
+//     const finalCourseIds = incomingCourseIds.length
+//       ? incomingCourseIds
+//       : existingCourseIds;
+
+//     if (!mongoose.Types.ObjectId.isValid(finalCategoryId)) {
+//       return res.status(400).json({ msg: "Invalid categoryId" });
+//     }
+
+//     if (!finalCourseIds.length || !hasValidObjectIds(finalCourseIds)) {
+//       return res.status(400).json({ msg: "Invalid courseIds" });
+//     }
+
+//     const category = await CategorySchema.findById(finalCategoryId);
+
+//     if (!category) {
+//       return res.status(404).json({ msg: "Category not found" });
+//     }
+
+//     const courses = await CourseSchema.find({
+//       _id: { $in: finalCourseIds },
+//     });
+
+//     if (courses.length !== finalCourseIds.length) {
+//       return res.status(404).json({ msg: "One or more courses not found" });
+//     }
+
+//     const invalidCategoryCourse = courses.find(
+//       (course) => String(course.categoryId) !== String(finalCategoryId)
+//     );
+
+//     if (invalidCategoryCourse) {
+//       return res.status(400).json({
+//         msg: "Selected courses must belong to selected category",
+//       });
+//     }
+
+//     let finalSectionType = "none";
+//     let finalSyllabus = "none";
+
+//     if (category.key === "online_tuition") {
+//       const selectedSection = sectionType || tuter.sectionType;
+
+//       if (
+//         !selectedSection ||
+//         !["one_to_one", "batch", "both"].includes(selectedSection)
+//       ) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, sectionType must be one_to_one, batch or both",
+//         });
+//       }
+
+//       if (selectedSection !== "both") {
+//         const invalidSectionCourse = courses.find(
+//           (course) => course.sectionType !== selectedSection
+//         );
+
+//         if (invalidSectionCourse) {
+//           return res.status(400).json({
+//             msg: "Selected courses do not belong to selected section",
+//           });
+//         }
+//       }
+
+//       if (selectedSection === "both") {
+//         const invalidBothCourse = courses.find(
+//           (course) =>
+//             course.sectionType !== "one_to_one" &&
+//             course.sectionType !== "batch"
+//         );
+
+//         if (invalidBothCourse) {
+//           return res.status(400).json({
+//             msg: "For both, select only one-to-one or batch courses",
+//           });
+//         }
+//       }
+
+//       const selectedSyllabus = syllabus || tuter.syllabus;
+
+//       if (
+//         !selectedSyllabus ||
+//         !["state", "cbse", "icse"].includes(selectedSyllabus)
+//       ) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, syllabus must be state, cbse or icse",
+//         });
+//       }
+
+//       finalSectionType = selectedSection;
+//       finalSyllabus = selectedSyllabus;
+//     }
+
+//     if (name !== undefined) tuter.name = name.trim();
+//     if (email !== undefined) tuter.email = email.trim().toLowerCase();
+//     if (phone !== undefined) tuter.phone = phone.trim();
+//     if (qualification !== undefined) tuter.qualification = qualification.trim();
+//     if (about !== undefined) tuter.about = about.trim();
+//     if (subjects !== undefined) tuter.subjects = parseSubjects(subjects);
+
+//     tuter.categoryId = finalCategoryId;
+//     tuter.courseId = finalCourseIds[0];
+//     tuter.courseIds = finalCourseIds;
+//     tuter.sectionType = finalSectionType;
+//     tuter.syllabus = finalSyllabus;
+
+//     if (isActive !== undefined) {
+//       tuter.isActive = isActive === "true" || isActive === true;
+//     }
+
+//     if (req.file) {
+//       if (
+//         tuter.photo &&
+//         !String(tuter.photo).startsWith("http") &&
+//         fs.existsSync(tuter.photo)
+//       ) {
+//         fs.unlinkSync(tuter.photo);
+//       }
+
+//       tuter.photo = getUploadedFileUrl(req.file);
+//     }
+
+//     await tuter.save();
+
+//     return res.status(200).json({
+//       msg: "Tuter updated successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("UPDATE_TUTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
 export async function UPDATE_TUTER(req, res) {
   try {
     const { tuterId } = req.params;
@@ -5991,14 +6172,12 @@ export async function UPDATE_TUTER(req, res) {
         }
       }
 
-      const selectedSyllabus = syllabus || tuter.syllabus;
+      const selectedSyllabus =
+        syllabus !== undefined ? String(syllabus).trim() : String(tuter.syllabus || "").trim();
 
-      if (
-        !selectedSyllabus ||
-        !["state", "cbse", "icse"].includes(selectedSyllabus)
-      ) {
+      if (!selectedSyllabus || selectedSyllabus === "none") {
         return res.status(400).json({
-          msg: "For Online Tuition, syllabus must be state, cbse or icse",
+          msg: "For Online Tuition, syllabus is required",
         });
       }
 
@@ -6046,6 +6225,11 @@ export async function UPDATE_TUTER(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+
+
+
 
 
 
