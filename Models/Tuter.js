@@ -89,11 +89,11 @@ const TuterSchema = new mongoose.Schema(
 
     subjects: [{ type: String, trim: true }],
 
-    syllabus: {
-      type: String,
-      enum: ["state", "cbse", "icse", "none"],
-      default: "none",
-    },
+    // syllabus: {
+    //   type: String,
+    //   enum: ["state", "cbse", "icse", "none"],
+    //   default: "none",
+    // },
 
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
