@@ -5101,6 +5101,159 @@ async function attachRatingAndReviews(tuter) {
 
 
 
+// export async function CREATE_TUTER(req, res) {
+//   try {
+//     const {
+//       name,
+//       email,
+//       phone,
+//       qualification,
+//       about,
+//       subjects,
+//       categoryId,
+//       sectionType,
+//       syllabus,
+//       isActive,
+//     } = req.body;
+
+//     const courseIds = parseCourseIds(req.body);
+
+//     if (!name || !phone || !categoryId || courseIds.length === 0) {
+//       return res.status(400).json({
+//         msg: "name, phone, categoryId and at least one courseId are required",
+//       });
+//     }
+
+//     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+//       return res.status(400).json({ msg: "Invalid categoryId" });
+//     }
+
+//     if (!hasValidObjectIds(courseIds)) {
+//       return res.status(400).json({ msg: "Invalid courseIds" });
+//     }
+
+//     const category = await CategorySchema.findById(categoryId);
+
+//     if (!category) {
+//       return res.status(404).json({ msg: "Category not found" });
+//     }
+
+//     const courses = await CourseSchema.find({
+//       _id: { $in: courseIds },
+//     });
+
+//     if (courses.length !== courseIds.length) {
+//       return res.status(404).json({ msg: "One or more courses not found" });
+//     }
+
+//     const invalidCategoryCourse = courses.find(
+//       (course) => String(course.categoryId) !== String(categoryId)
+//     );
+
+//     if (invalidCategoryCourse) {
+//       return res.status(400).json({
+//         msg: "Selected courses must belong to selected category",
+//       });
+//     }
+
+//     let finalSectionType = "none";
+//     let finalSyllabus = "none";
+
+//     if (category.key === "online_tuition") {
+//       if (
+//         !sectionType ||
+//         !["one_to_one", "batch", "both"].includes(sectionType)
+//       ) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, sectionType must be one_to_one, batch or both",
+//         });
+//       }
+
+//       if (sectionType !== "both") {
+//         const invalidSectionCourse = courses.find(
+//           (course) => course.sectionType !== sectionType
+//         );
+
+//         if (invalidSectionCourse) {
+//           return res.status(400).json({
+//             msg: "Selected courses do not belong to selected section",
+//           });
+//         }
+//       }
+
+//       if (sectionType === "both") {
+//         const invalidBothCourse = courses.find(
+//           (course) =>
+//             course.sectionType !== "one_to_one" &&
+//             course.sectionType !== "batch"
+//         );
+
+//         if (invalidBothCourse) {
+//           return res.status(400).json({
+//             msg: "For both, select only one-to-one or batch courses",
+//           });
+//         }
+//       }
+
+//       if (!syllabus || !["state", "cbse", "icse"].includes(syllabus)) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, syllabus must be state, cbse or icse",
+//         });
+//       }
+
+//       finalSectionType = sectionType;
+//       finalSyllabus = syllabus;
+//     }
+
+//     const tuter = await TuterSchema.create({
+//       name: name.trim(),
+//       email: email ? email.trim().toLowerCase() : "",
+//       phone: phone.trim(),
+//       qualification: qualification ? qualification.trim() : "",
+//       about: about ? about.trim() : "",
+//       subjects: parseSubjects(subjects),
+
+//       categoryId,
+//       courseId: courseIds[0],
+//       courseIds,
+
+//       sectionType: finalSectionType,
+//       syllabus: finalSyllabus,
+//       photo: req.file ? getUploadedFileUrl(req.file) : "",
+
+//       isActive:
+//         isActive !== undefined
+//           ? isActive === "true" || isActive === true
+//           : true,
+
+//       createdBy: req.user._id,
+//     });
+
+//     return res.status(201).json({
+//       msg: "Tuter created successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("CREATE_TUTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export async function CREATE_TUTER(req, res) {
   try {
     const {
@@ -5195,14 +5348,14 @@ export async function CREATE_TUTER(req, res) {
         }
       }
 
-      if (!syllabus || !["state", "cbse", "icse"].includes(syllabus)) {
+      if (!syllabus || !String(syllabus).trim()) {
         return res.status(400).json({
-          msg: "For Online Tuition, syllabus must be state, cbse or icse",
+          msg: "For Online Tuition, syllabus is required",
         });
       }
 
       finalSectionType = sectionType;
-      finalSyllabus = syllabus;
+      finalSyllabus = String(syllabus).trim();
     }
 
     const tuter = await TuterSchema.create({
@@ -5238,11 +5391,6 @@ export async function CREATE_TUTER(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
-
 
 
 
