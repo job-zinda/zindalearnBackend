@@ -5348,11 +5348,13 @@ export async function CREATE_TUTER(req, res) {
         }
       }
 
-      if (!syllabus || !String(syllabus).trim()) {
-        return res.status(400).json({
-          msg: "For Online Tuition, syllabus is required",
-        });
-      }
+     if (!syllabus || !String(syllabus).trim()) {
+  return res.status(400).json({
+    msg: "For Online Tuition, syllabus is required",
+  });
+}
+
+finalSyllabus = String(syllabus).trim();
 
       finalSectionType = sectionType;
       finalSyllabus = String(syllabus).trim();

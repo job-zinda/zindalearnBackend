@@ -89,7 +89,7 @@ const TuterSchema = new mongoose.Schema(
 
     subjects: [{ type: String, trim: true }],
 
-    syllabus: {
+ syllabus: {
   type: String,
   default: "none",
   trim: true,
