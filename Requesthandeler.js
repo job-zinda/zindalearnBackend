@@ -5384,23 +5384,86 @@ export async function GET_ALL_TUTERS_ADMIN(req, res) {
 
 
 
+// export async function GET_TUTERS_BY_COURSE(req, res) {
+//   try {
+//     const { courseId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(courseId)) {
+//       return res.status(400).json({ msg: "Invalid courseId" });
+//     }
+
+//     const tuters = await TuterSchema.find({
+//       $or: [{ courseId }, { courseIds: courseId }],
+//       isActive: true,
+//     })
+//       .populate("categoryId", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "Tutors fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_TUTERS_BY_COURSE error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 export async function GET_TUTERS_BY_COURSE(req, res) {
   try {
     const { courseId } = req.params;
 
+    // ✅ validate course id
     if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({ msg: "Invalid courseId" });
+      return res.status(400).json({
+        msg: "Invalid courseId",
+      });
     }
 
+    // ✅ get tutors from:
+    // 1. old single course data
+    // 2. new multiple courseIds data
     const tuters = await TuterSchema.find({
-      $or: [{ courseId }, { courseIds: courseId }],
       isActive: true,
+      $or: [
+        { courseId: courseId },
+        { courseIds: { $in: [courseId] } },
+      ],
     })
-      .populate("categoryId", "key title image")
-      .populate("courseId", "name description image sectionType categoryId")
-      .populate("courseIds", "name description image sectionType categoryId")
+      .populate(
+        "categoryId",
+        "key title description image"
+      )
+      .populate(
+        "courseId",
+        "name description image sectionType categoryId"
+      )
+      .populate(
+        "courseIds",
+        "name description image sectionType categoryId"
+      )
       .sort({ createdAt: -1 });
 
+    // ✅ attach ratings + reviews
     const data = await Promise.all(
       tuters.map((tuter) => attachRatingAndReviews(tuter))
     );
@@ -5410,14 +5473,15 @@ export async function GET_TUTERS_BY_COURSE(req, res) {
       count: data.length,
       tuters: data,
     });
+
   } catch (err) {
     console.log("GET_TUTERS_BY_COURSE error:", err.message);
-    return res.status(500).json({ error: err.message });
+
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 }
-
-
-
 
 
 
