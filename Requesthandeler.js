@@ -3495,6 +3495,8 @@ import ChatMessageSchema from "./Models/ChatMessage.js";
 import { getIO, isUserOnline } from "./socket.js";
 
 import FeedbackSchema from "./Models/Feedback.js";
+import StudentTutorAssignSchema from "./models/StudentTutorAssign.js";
+import { assign } from "nodemailer/lib/shared/index.js";
 
 // ===================== CLOUDINARY FILE HELPERS =====================
 function getUploadedFileUrl(file) {
@@ -7973,6 +7975,133 @@ export async function GET_MY_FEEDBACK(req, res) {
     });
   } catch (err) {
     console.log("GET_MY_FEEDBACK error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//assign tutor for student
+
+
+
+export async function ASSIGN_TUTORS_TO_STUDENT(req, res) {
+  try {
+    const { studentId } = req.params;
+    const { tutorIds } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ msg: "Invalid studentId" });
+    }
+
+    if (!Array.isArray(tutorIds)) {
+      return res.status(400).json({ msg: "tutorIds must be an array" });
+    }
+
+    const cleanTutorIds = [...new Set(tutorIds.map(String))].filter(Boolean);
+
+    const invalidTutorId = cleanTutorIds.find(
+      (id) => !mongoose.Types.ObjectId.isValid(id)
+    );
+
+    if (invalidTutorId) {
+      return res.status(400).json({ msg: "Invalid tutorIds" });
+    }
+
+    const student = await UserSchema.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({ msg: "Student not found" });
+    }
+
+    const tutors = await TuterSchema.find({
+      _id: { $in: cleanTutorIds },
+      isActive: true,
+    });
+
+    if (tutors.length !== cleanTutorIds.length) {
+      return res.status(404).json({ msg: "One or more tutors not found" });
+    }
+
+    const assignment = await StudentTutorAssignSchema.findOneAndUpdate(
+      { studentId },
+      {
+        studentId,
+        tutorIds: cleanTutorIds,
+        assignedBy: req.user?._id,
+      },
+      { new: true, upsert: true }
+    )
+      .populate("studentId", "name email phone photo")
+      .populate("tutorIds", "name email phone photo qualification subjects");
+
+    return res.status(200).json({
+      msg: "Tutors assigned successfully",
+      assignment,
+    });
+  } catch (err) {
+    console.log("ASSIGN_TUTORS_TO_STUDENT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function GET_ASSIGNED_TUTORS_BY_STUDENT(req, res) {
+  try {
+    const { studentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ msg: "Invalid studentId" });
+    }
+
+    const assignment = await StudentTutorAssignSchema.findOne({ studentId })
+      .populate("studentId", "name email phone photo")
+      .populate("tutorIds", "name email phone photo qualification subjects");
+
+    return res.status(200).json({
+      msg: "Assigned tutors fetched successfully",
+      assignment,
+      tutors: assignment?.tutorIds || [],
+    });
+  } catch (err) {
+    console.log("GET_ASSIGNED_TUTORS_BY_STUDENT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function GET_ASSIGNED_STUDENTS_BY_TUTOR(req, res) {
+  try {
+    const { tuterId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+      return res.status(400).json({ msg: "Invalid tuterId" });
+    }
+
+    const assignments = await StudentTutorAssignSchema.find({
+      tutorIds: tuterId,
+    })
+      .populate("studentId", "name email phone photo createdAt")
+      .populate("tutorIds", "name");
+
+    const students = assignments
+      .map((item) => item.studentId)
+      .filter(Boolean);
+
+    return res.status(200).json({
+      msg: "Assigned students fetched successfully",
+      count: students.length,
+      students,
+    });
+  } catch (err) {
+    console.log("GET_ASSIGNED_STUDENTS_BY_TUTOR error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }

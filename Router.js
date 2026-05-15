@@ -363,4 +363,12 @@ router.route("/feedback").post(Auth, studentOnly, rh.ADD_FEEDBACK);
 router.route("/feedback/my").get(Auth, studentOnly, rh.GET_MY_FEEDBACK);
 router.route("/get/feedback/all").get(Auth, rh.GET_ALL_FEEDBACK);
 
+
+
+// assign tutor for student
+
+router.route("/admin/student/:studentId/assign-tutors").post(Auth, adminOnly, rh.ASSIGN_TUTORS_TO_STUDENT);
+router.route("/admin/student/:studentId/assigned-tutors").get(Auth, adminOnly, rh.GET_ASSIGNED_TUTORS_BY_STUDENT);
+router.route("/admin/tuter/:tuterId/assigned-students").get(Auth, adminOnly, rh.GET_ASSIGNED_STUDENTS_BY_TUTOR);
+
 export default router;
