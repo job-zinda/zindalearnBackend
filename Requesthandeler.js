@@ -50,6 +50,57 @@ export function makeOtp() {
 
 
 
+// export async function REGISTER(req, res) {
+//   try {
+//     const { name, email, phone, pass, cpass } = req.body;
+
+//     if (!name || !email || !phone || !pass || !cpass) {
+//       return res.status(400).json({
+//         msg: "name, email, phone, pass, cpass are required",
+//       });
+//     }
+
+//     if (pass !== cpass) {
+//       return res.status(400).json({ msg: "Password mismatch" });
+//     }
+
+//     const cleanEmail = email.toLowerCase().trim();
+//     const cleanPhone = String(phone).trim();
+
+//     const existing = await UserSchema.findOne({
+//       $or: [{ email: cleanEmail }, { phone: cleanPhone }],
+//     });
+
+//     if (existing) {
+//       return res.status(409).json({
+//         msg:
+//           existing.email === cleanEmail
+//             ? "User already exists, please login"
+//             : "Phone number already exists",
+//       });
+//     }
+
+//     const hashed = await bcrypt.hash(pass, 10);
+
+//     const user = await UserSchema.create({
+//       name: name.trim(),
+//       email: cleanEmail,
+//       phone: cleanPhone,
+//       pass: hashed,
+//     });
+
+//     return res.status(201).json({
+//       msg: "Registration successful",
+//       userId: user._id,
+//     });
+//   } catch (err) {
+//     console.log("REGISTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
 export async function REGISTER(req, res) {
   try {
     const { name, email, phone, pass, cpass } = req.body;
@@ -60,12 +111,20 @@ export async function REGISTER(req, res) {
       });
     }
 
+    const cleanEmail = String(email).toLowerCase().trim();
+    const cleanPhone = String(phone).trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        msg: "Please enter a valid email address",
+      });
+    }
+
     if (pass !== cpass) {
       return res.status(400).json({ msg: "Password mismatch" });
     }
-
-    const cleanEmail = email.toLowerCase().trim();
-    const cleanPhone = String(phone).trim();
 
     const existing = await UserSchema.findOne({
       $or: [{ email: cleanEmail }, { phone: cleanPhone }],
@@ -83,7 +142,7 @@ export async function REGISTER(req, res) {
     const hashed = await bcrypt.hash(pass, 10);
 
     const user = await UserSchema.create({
-      name: name.trim(),
+      name: String(name).trim(),
       email: cleanEmail,
       phone: cleanPhone,
       pass: hashed,
@@ -98,10 +157,6 @@ export async function REGISTER(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
 
 
 
