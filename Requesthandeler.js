@@ -4716,60 +4716,319 @@ export async function GET_MY_FEEDBACK(req, res) {
 
 
 
+// // ================= ASSIGN TUTORS TO STUDENT =================
+
+// export async function ASSIGN_TUTORS_TO_STUDENT(req, res) {
+//   try {
+//     const { studentId } = req.params;
+//     const { tutorIds } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(studentId)) {
+//       return res.status(400).json({
+//         msg: "Invalid studentId",
+//       });
+//     }
+
+//     if (!Array.isArray(tutorIds)) {
+//       return res.status(400).json({
+//         msg: "tutorIds must be array",
+//       });
+//     }
+
+//     const validTutorIds = tutorIds.filter((id) =>
+//       mongoose.Types.ObjectId.isValid(id)
+//     );
+
+//     const student = await UserSchema.findById(studentId);
+
+//     if (!student) {
+//       return res.status(404).json({
+//         msg: "Student not found",
+//       });
+//     }
+
+//     const tutors = await TuterSchema.find({
+//       _id: { $in: validTutorIds },
+//     });
+
+//     if (tutors.length !== validTutorIds.length) {
+//       return res.status(404).json({
+//         msg: "One or more tutors not found",
+//       });
+//     }
+
+//     let assignment = await StudentTutorAssignSchema.findOne({
+//       studentId,
+//     });
+
+//     if (assignment) {
+//       assignment.tutorIds = validTutorIds;
+//       assignment.assignedBy = req.user._id;
+
+//       await assignment.save();
+//     } else {
+//       assignment = await StudentTutorAssignSchema.create({
+//         studentId,
+//         tutorIds: validTutorIds,
+//         assignedBy: req.user._id,
+//       });
+//     }
+
+//     return res.status(200).json({
+//       msg: "Tutors assigned successfully",
+//       assignment,
+//     });
+//   } catch (err) {
+//     console.log("ASSIGN_TUTORS_TO_STUDENT error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+// // ================= GET ASSIGNED TUTORS =================
+
+// export async function GET_ASSIGNED_TUTORS_BY_STUDENT(req, res) {
+//   try {
+//     const { studentId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(studentId)) {
+//       return res.status(400).json({
+//         msg: "Invalid studentId",
+//       });
+//     }
+
+//     const assignment = await StudentTutorAssignSchema.findOne({
+//       studentId,
+//     }).populate({
+//       path: "tutorIds",
+//       populate: [
+//         {
+//           path: "categoryId",
+//           select: "title key image",
+//         },
+//         {
+//           path: "courseIds",
+//           select: "name sectionType",
+//         },
+//       ],
+//     });
+
+//     return res.status(200).json({
+//       msg: "Assigned tutors fetched successfully",
+//       tutors: assignment ? assignment.tutorIds : [],
+//     });
+//   } catch (err) {
+//     console.log("GET_ASSIGNED_TUTORS_BY_STUDENT error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+// // ================= GET ASSIGNED STUDENTS =================
+
+// export async function GET_ASSIGNED_STUDENTS_BY_TUTOR(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({
+//         msg: "Invalid tuterId",
+//       });
+//     }
+
+//     const assignments = await StudentTutorAssignSchema.find({
+//       tutorIds: tuterId,
+//     }).populate("studentId", "name email phone photo");
+
+//     const students = assignments.map((item) => item.studentId);
+
+//     return res.status(200).json({
+//       msg: "Assigned students fetched successfully",
+//       students,
+//     });
+//   } catch (err) {
+//     console.log("GET_ASSIGNED_STUDENTS_BY_TUTOR error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ================= ASSIGN TUTORS TO STUDENT =================
 
 export async function ASSIGN_TUTORS_TO_STUDENT(req, res) {
   try {
     const { studentId } = req.params;
-    const { tutorIds } = req.body;
+    const { assignments } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
-      return res.status(400).json({
-        msg: "Invalid studentId",
-      });
+      return res.status(400).json({ msg: "Invalid studentId" });
     }
 
-    if (!Array.isArray(tutorIds)) {
+    if (!Array.isArray(assignments)) {
       return res.status(400).json({
-        msg: "tutorIds must be array",
+        msg: "assignments must be array",
       });
     }
-
-    const validTutorIds = tutorIds.filter((id) =>
-      mongoose.Types.ObjectId.isValid(id)
-    );
 
     const student = await UserSchema.findById(studentId);
 
     if (!student) {
-      return res.status(404).json({
-        msg: "Student not found",
+      return res.status(404).json({ msg: "Student not found" });
+    }
+
+    const cleanAssignments = [];
+
+    for (const item of assignments) {
+      const tutorId = item?.tutorId;
+      const courseIds = Array.isArray(item?.courseIds) ? item.courseIds : [];
+
+      if (!mongoose.Types.ObjectId.isValid(tutorId)) {
+        return res.status(400).json({ msg: "Invalid tutorId in assignments" });
+      }
+
+      if (courseIds.length === 0) {
+        return res.status(400).json({
+          msg: "Each selected tutor must have at least one selected course",
+        });
+      }
+
+      const validCourseIds = courseIds.filter((id) =>
+        mongoose.Types.ObjectId.isValid(id)
+      );
+
+      if (validCourseIds.length !== courseIds.length) {
+        return res.status(400).json({
+          msg: "Invalid courseId in assignments",
+        });
+      }
+
+      cleanAssignments.push({
+        tutorId,
+        courseIds: validCourseIds,
       });
     }
 
+    const tutorIds = cleanAssignments.map((item) => item.tutorId);
+
     const tutors = await TuterSchema.find({
-      _id: { $in: validTutorIds },
+      _id: { $in: tutorIds },
     });
 
-    if (tutors.length !== validTutorIds.length) {
+    if (tutors.length !== tutorIds.length) {
       return res.status(404).json({
         msg: "One or more tutors not found",
       });
     }
 
-    let assignment = await StudentTutorAssignSchema.findOne({
-      studentId,
+    const allCourseIds = cleanAssignments.flatMap((item) => item.courseIds);
+
+    const courses = await CourseSchema.find({
+      _id: { $in: allCourseIds },
     });
 
-    if (assignment) {
-      assignment.tutorIds = validTutorIds;
-      assignment.assignedBy = req.user._id;
+    if (courses.length !== [...new Set(allCourseIds.map(String))].length) {
+      return res.status(404).json({
+        msg: "One or more courses not found",
+      });
+    }
 
+    for (const item of cleanAssignments) {
+      const tutor = tutors.find(
+        (t) => String(t._id) === String(item.tutorId)
+      );
+
+      const tutorCourseIds =
+        Array.isArray(tutor.courseIds) && tutor.courseIds.length > 0
+          ? tutor.courseIds.map(String)
+          : tutor.courseId
+          ? [String(tutor.courseId)]
+          : [];
+
+      const invalidCourse = item.courseIds.find(
+        (courseId) => !tutorCourseIds.includes(String(courseId))
+      );
+
+      if (invalidCourse) {
+        return res.status(400).json({
+          msg: "Selected course does not belong to selected tutor",
+        });
+      }
+    }
+
+    let assignment = await StudentTutorAssignSchema.findOne({ studentId });
+
+    if (assignment) {
+      assignment.assignments = cleanAssignments;
+      assignment.assignedBy = req.user._id;
       await assignment.save();
     } else {
       assignment = await StudentTutorAssignSchema.create({
         studentId,
-        tutorIds: validTutorIds,
+        assignments: cleanAssignments,
         assignedBy: req.user._id,
       });
     }
@@ -4780,10 +5039,7 @@ export async function ASSIGN_TUTORS_TO_STUDENT(req, res) {
     });
   } catch (err) {
     console.log("ASSIGN_TUTORS_TO_STUDENT error:", err.message);
-
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -4794,37 +5050,59 @@ export async function GET_ASSIGNED_TUTORS_BY_STUDENT(req, res) {
     const { studentId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
-      return res.status(400).json({
-        msg: "Invalid studentId",
-      });
+      return res.status(400).json({ msg: "Invalid studentId" });
     }
 
     const assignment = await StudentTutorAssignSchema.findOne({
       studentId,
-    }).populate({
-      path: "tutorIds",
-      populate: [
-        {
-          path: "categoryId",
-          select: "title key image",
-        },
-        {
-          path: "courseIds",
-          select: "name sectionType",
-        },
-      ],
-    });
+    })
+      .populate({
+        path: "assignments.tutorId",
+        populate: [
+          {
+            path: "categoryId",
+            select: "title key image",
+          },
+          {
+            path: "courseId",
+            select: "name sectionType",
+          },
+          {
+            path: "courseIds",
+            select: "name sectionType",
+          },
+        ],
+      })
+      .populate({
+        path: "assignments.courseIds",
+        select: "name sectionType categoryId",
+      });
+
+    const assignments = assignment ? assignment.assignments : [];
+
+    const tutors = assignments
+      .map((item) => {
+        if (!item.tutorId) return null;
+
+        const tutorObj = item.tutorId.toObject
+          ? item.tutorId.toObject()
+          : item.tutorId;
+
+        return {
+          ...tutorObj,
+          assignedCourseIds: item.courseIds || [],
+        };
+      })
+      .filter(Boolean);
 
     return res.status(200).json({
       msg: "Assigned tutors fetched successfully",
-      tutors: assignment ? assignment.tutorIds : [],
+      assignments,
+      tutors,
     });
   } catch (err) {
     console.log("GET_ASSIGNED_TUTORS_BY_STUDENT error:", err.message);
-
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -4835,16 +5113,36 @@ export async function GET_ASSIGNED_STUDENTS_BY_TUTOR(req, res) {
     const { tuterId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-      return res.status(400).json({
-        msg: "Invalid tuterId",
-      });
+      return res.status(400).json({ msg: "Invalid tuterId" });
     }
 
     const assignments = await StudentTutorAssignSchema.find({
-      tutorIds: tuterId,
-    }).populate("studentId", "name email phone photo");
+      "assignments.tutorId": tuterId,
+    })
+      .populate("studentId", "name email phone photo")
+      .populate({
+        path: "assignments.courseIds",
+        select: "name sectionType categoryId",
+      });
 
-    const students = assignments.map((item) => item.studentId);
+    const students = assignments
+      .map((item) => {
+        const matchedAssignment = item.assignments.find(
+          (assign) => String(assign.tutorId) === String(tuterId)
+        );
+
+        if (!item.studentId) return null;
+
+        const studentObj = item.studentId.toObject
+          ? item.studentId.toObject()
+          : item.studentId;
+
+        return {
+          ...studentObj,
+          assignedCourses: matchedAssignment?.courseIds || [],
+        };
+      })
+      .filter(Boolean);
 
     return res.status(200).json({
       msg: "Assigned students fetched successfully",
@@ -4852,9 +5150,6 @@ export async function GET_ASSIGNED_STUDENTS_BY_TUTOR(req, res) {
     });
   } catch (err) {
     console.log("GET_ASSIGNED_STUDENTS_BY_TUTOR error:", err.message);
-
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 }
