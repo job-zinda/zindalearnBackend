@@ -1921,6 +1921,55 @@ async function attachRatingAndReviews(tuter) {
 
 
 
+// function parseSubjects(subjects) {
+//   if (!subjects) return [];
+
+//   if (Array.isArray(subjects)) {
+//     return subjects.map((s) => String(s).trim()).filter(Boolean);
+//   }
+
+//   return String(subjects)
+//     .split(",")
+//     .map((s) => s.trim())
+//     .filter(Boolean);
+// }
+
+// function parseCategoryIds(body) {
+//   const raw = body.categoryIds || body.categoryId || [];
+
+//   if (Array.isArray(raw)) {
+//     return raw.filter(Boolean).map(String);
+//   }
+
+//   return String(raw)
+//     .split(",")
+//     .map((id) => id.trim())
+//     .filter(Boolean);
+// }
+
+// function parseCourseIds(body) {
+//   const raw = body.courseIds || body.courseId || [];
+
+//   if (Array.isArray(raw)) {
+//     return raw.filter(Boolean).map(String);
+//   }
+
+//   return String(raw)
+//     .split(",")
+//     .map((id) => id.trim())
+//     .filter(Boolean);
+// }
+
+// function hasValidObjectIds(ids = []) {
+//   return ids.every((id) => mongoose.Types.ObjectId.isValid(id));
+// }
+
+
+
+
+
+
+
 function parseSubjects(subjects) {
   if (!subjects) return [];
 
@@ -1963,6 +2012,7 @@ function parseCourseIds(body) {
 function hasValidObjectIds(ids = []) {
   return ids.every((id) => mongoose.Types.ObjectId.isValid(id));
 }
+
 
 
 
