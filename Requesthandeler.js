@@ -1826,152 +1826,400 @@ async function attachRatingAndReviews(tuter) {
 
 
 
+function parseCategoryIds(body) {
+  const raw = body.categoryIds || body.categoryId || [];
 
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean).map(String);
+  }
 
-
-
-
-
-
-
-export async function CREATE_TUTER(req, res) {
-  try {
-    const {
-      name,
-      email,
-      phone,
-      qualification,
-      about,
-      subjects,
-      categoryId,
-      sectionType,
-      syllabus,
-      isActive,
-    } = req.body;
-
-    const courseIds = parseCourseIds(req.body);
-
-    if (!name || !phone || !categoryId || courseIds.length === 0) {
-      return res.status(400).json({
-        msg: "name, phone, categoryId and at least one courseId are required",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({ msg: "Invalid categoryId" });
-    }
-
-    if (!hasValidObjectIds(courseIds)) {
-      return res.status(400).json({ msg: "Invalid courseIds" });
-    }
-
-    const category = await CategorySchema.findById(categoryId);
-
-    if (!category) {
-      return res.status(404).json({ msg: "Category not found" });
-    }
-
-    const courses = await CourseSchema.find({
-      _id: { $in: courseIds },
-    });
-
-    if (courses.length !== courseIds.length) {
-      return res.status(404).json({ msg: "One or more courses not found" });
-    }
-
-    const invalidCategoryCourse = courses.find(
-      (course) => String(course.categoryId) !== String(categoryId)
-    );
-
-    if (invalidCategoryCourse) {
-      return res.status(400).json({
-        msg: "Selected courses must belong to selected category",
-      });
-    }
-
-    let finalSectionType = "none";
-    let finalSyllabus = "none";
-
-    if (category.key === "online_tuition") {
-      if (
-        !sectionType ||
-        !["one_to_one", "batch", "both"].includes(sectionType)
-      ) {
-        return res.status(400).json({
-          msg: "For Online Tuition, sectionType must be one_to_one, batch or both",
-        });
-      }
-
-      if (sectionType !== "both") {
-        const invalidSectionCourse = courses.find(
-          (course) => course.sectionType !== sectionType
-        );
-
-        if (invalidSectionCourse) {
-          return res.status(400).json({
-            msg: "Selected courses do not belong to selected section",
-          });
-        }
-      }
-
-      if (sectionType === "both") {
-        const invalidBothCourse = courses.find(
-          (course) =>
-            course.sectionType !== "one_to_one" &&
-            course.sectionType !== "batch"
-        );
-
-        if (invalidBothCourse) {
-          return res.status(400).json({
-            msg: "For both, select only one-to-one or batch courses",
-          });
-        }
-      }
-
-     if (!syllabus || !String(syllabus).trim()) {
-  return res.status(400).json({
-    msg: "For Online Tuition, syllabus is required",
-  });
+  return String(raw)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
 }
 
-finalSyllabus = String(syllabus).trim();
 
-      finalSectionType = sectionType;
-      finalSyllabus = String(syllabus).trim();
-    }
 
-    const tuter = await TuterSchema.create({
-      name: name.trim(),
-      email: email ? email.trim().toLowerCase() : "",
-      phone: phone.trim(),
-      qualification: qualification ? qualification.trim() : "",
-      about: about ? about.trim() : "",
-      subjects: parseSubjects(subjects),
 
-      categoryId,
-      courseId: courseIds[0],
-      courseIds,
 
-      sectionType: finalSectionType,
-      syllabus: finalSyllabus,
-      photo: req.file ? getUploadedFileUrl(req.file) : "",
 
-      isActive:
-        isActive !== undefined
-          ? isActive === "true" || isActive === true
-          : true,
+function parseCategoryIds(body) {
+  const raw = body.categoryIds || body.categoryId || [];
 
-      createdBy: req.user._id,
-    });
-
-    return res.status(201).json({
-      msg: "Tuter created successfully",
-      tuter,
-    });
-  } catch (err) {
-    console.log("CREATE_TUTER error:", err.message);
-    return res.status(500).json({ error: err.message });
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean).map(String);
   }
+
+  return String(raw)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function parseCourseIds(body) {
+  const raw = body.courseIds || body.courseId || [];
+
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean).map(String);
+  }
+
+  return String(raw)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function hasValidObjectIds(ids=[]) {
+  return ids.every((id)=>
+    mongoose.Types.ObjectId.isValid(id)
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+// export async function CREATE_TUTER(req, res) {
+//   try {
+//     const {
+//       name,
+//       email,
+//       phone,
+//       qualification,
+//       about,
+//       subjects,
+//       categoryId,
+//       sectionType,
+//       syllabus,
+//       isActive,
+//     } = req.body;
+
+//     const courseIds = parseCourseIds(req.body);
+
+//     if (!name || !phone || !categoryId || courseIds.length === 0) {
+//       return res.status(400).json({
+//         msg: "name, phone, categoryId and at least one courseId are required",
+//       });
+//     }
+
+//     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+//       return res.status(400).json({ msg: "Invalid categoryId" });
+//     }
+
+//     if (!hasValidObjectIds(courseIds)) {
+//       return res.status(400).json({ msg: "Invalid courseIds" });
+//     }
+
+//     const category = await CategorySchema.findById(categoryId);
+
+//     if (!category) {
+//       return res.status(404).json({ msg: "Category not found" });
+//     }
+
+//     const courses = await CourseSchema.find({
+//       _id: { $in: courseIds },
+//     });
+
+//     if (courses.length !== courseIds.length) {
+//       return res.status(404).json({ msg: "One or more courses not found" });
+//     }
+
+//     const invalidCategoryCourse = courses.find(
+//       (course) => String(course.categoryId) !== String(categoryId)
+//     );
+
+//     if (invalidCategoryCourse) {
+//       return res.status(400).json({
+//         msg: "Selected courses must belong to selected category",
+//       });
+//     }
+
+//     let finalSectionType = "none";
+//     let finalSyllabus = "none";
+
+//     if (category.key === "online_tuition") {
+//       if (
+//         !sectionType ||
+//         !["one_to_one", "batch", "both"].includes(sectionType)
+//       ) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, sectionType must be one_to_one, batch or both",
+//         });
+//       }
+
+//       if (sectionType !== "both") {
+//         const invalidSectionCourse = courses.find(
+//           (course) => course.sectionType !== sectionType
+//         );
+
+//         if (invalidSectionCourse) {
+//           return res.status(400).json({
+//             msg: "Selected courses do not belong to selected section",
+//           });
+//         }
+//       }
+
+//       if (sectionType === "both") {
+//         const invalidBothCourse = courses.find(
+//           (course) =>
+//             course.sectionType !== "one_to_one" &&
+//             course.sectionType !== "batch"
+//         );
+
+//         if (invalidBothCourse) {
+//           return res.status(400).json({
+//             msg: "For both, select only one-to-one or batch courses",
+//           });
+//         }
+//       }
+
+//      if (!syllabus || !String(syllabus).trim()) {
+//   return res.status(400).json({
+//     msg: "For Online Tuition, syllabus is required",
+//   });
+// }
+
+// finalSyllabus = String(syllabus).trim();
+
+//       finalSectionType = sectionType;
+//       finalSyllabus = String(syllabus).trim();
+//     }
+
+//     const tuter = await TuterSchema.create({
+//       name: name.trim(),
+//       email: email ? email.trim().toLowerCase() : "",
+//       phone: phone.trim(),
+//       qualification: qualification ? qualification.trim() : "",
+//       about: about ? about.trim() : "",
+//       subjects: parseSubjects(subjects),
+
+//       categoryId,
+//       courseId: courseIds[0],
+//       courseIds,
+
+//       sectionType: finalSectionType,
+//       syllabus: finalSyllabus,
+//       photo: req.file ? getUploadedFileUrl(req.file) : "",
+
+//       isActive:
+//         isActive !== undefined
+//           ? isActive === "true" || isActive === true
+//           : true,
+
+//       createdBy: req.user._id,
+//     });
+
+//     return res.status(201).json({
+//       msg: "Tuter created successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("CREATE_TUTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+export async function CREATE_TUTER(req,res){
+try{
+
+const{
+name,
+email,
+phone,
+qualification,
+about,
+subjects,
+syllabus,
+isActive
+}=req.body;
+
+const categoryIds=parseCategoryIds(req.body);
+
+const courseIds=parseCourseIds(req.body);
+
+if(
+!name ||
+!phone ||
+categoryIds.length===0 ||
+courseIds.length===0
+){
+return res.status(400).json({
+msg:"name, phone, at least one category and one course required"
+});
+}
+
+if(!hasValidObjectIds(categoryIds)){
+return res.status(400).json({
+msg:"Invalid categoryIds"
+});
+}
+
+if(!hasValidObjectIds(courseIds)){
+return res.status(400).json({
+msg:"Invalid courseIds"
+});
+}
+
+const categories=
+await CategorySchema.find({
+_id:{
+$in:categoryIds
+}
+});
+
+if(categories.length!==categoryIds.length){
+return res.status(404).json({
+msg:"One or more categories not found"
+});
+}
+
+const courses=
+await CourseSchema.find({
+_id:{
+$in:courseIds
+}
+});
+
+if(courses.length!==courseIds.length){
+return res.status(404).json({
+msg:"One or more courses not found"
+});
+}
+
+const invalidCourse=
+courses.find(
+course=>
+!categoryIds.includes(
+String(course.categoryId)
+)
+);
+
+if(invalidCourse){
+return res.status(400).json({
+msg:"Selected course not in selected category"
+});
+}
+
+const hasOnline=
+categories.some(
+cat=>cat.key==="online_tuition"
+);
+
+let finalSyllabus="none";
+
+let finalSectionType="none";
+
+if(hasOnline){
+
+if(
+!syllabus ||
+!String(syllabus).trim()
+){
+return res.status(400).json({
+msg:"Syllabus required"
+});
+}
+
+finalSyllabus=
+String(syllabus).trim();
+
+finalSectionType="both";
+
+}
+
+const tuter=
+await TuterSchema.create({
+
+name:name.trim(),
+
+email:
+email?
+email.trim().toLowerCase()
+:"",
+
+phone:phone.trim(),
+
+qualification:
+qualification?
+qualification.trim()
+:"",
+
+about:
+about?
+about.trim()
+:"",
+
+subjects:
+parseSubjects(subjects),
+
+categoryId:
+categoryIds[0],
+
+categoryIds,
+
+courseId:
+courseIds[0],
+
+courseIds,
+
+sectionType:
+finalSectionType,
+
+syllabus:
+finalSyllabus,
+
+photo:
+req.file?
+getUploadedFileUrl(req.file)
+:"",
+
+isActive:
+isActive!==undefined
+?
+isActive==="true"||
+isActive===true
+:
+true,
+
+createdBy:
+req.user._id
+
+});
+
+return res.status(201).json({
+msg:"Tutor created",
+tuter
+});
+
+}
+catch(err){
+
+console.log(
+"CREATE_TUTER:",
+err.message
+);
+
+return res.status(500).json({
+error:err.message
+});
+
+}
 }
 
 
@@ -2037,10 +2285,45 @@ finalSyllabus = String(syllabus).trim();
 
 
 
+// export async function GET_ALL_TUTERS_ADMIN(req, res) {
+//   try {
+//     const tuters = await TuterSchema.find()
+//       .populate("categoryId", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .populate("createdBy", "name email role")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "All tuters fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_TUTERS_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
 export async function GET_ALL_TUTERS_ADMIN(req, res) {
   try {
     const tuters = await TuterSchema.find()
       .populate("categoryId", "key title image")
+      .populate("categoryIds", "key title image")
       .populate("courseId", "name description image sectionType categoryId")
       .populate("courseIds", "name description image sectionType categoryId")
       .populate("createdBy", "name email role")
@@ -2060,7 +2343,6 @@ export async function GET_ALL_TUTERS_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
 
 
 
@@ -2158,42 +2440,91 @@ export async function GET_ALL_TUTERS_ADMIN(req, res) {
 
 
 
+// export async function GET_TUTERS_BY_COURSE(req, res) {
+//   try {
+//     const { courseId } = req.params;
+
+//     // ✅ validate course id
+//     if (!mongoose.Types.ObjectId.isValid(courseId)) {
+//       return res.status(400).json({
+//         msg: "Invalid courseId",
+//       });
+//     }
+
+//     // ✅ get tutors from:
+//     // 1. old single course data
+//     // 2. new multiple courseIds data
+//     const tuters = await TuterSchema.find({
+//       isActive: true,
+//       $or: [
+//         { courseId: courseId },
+//         { courseIds: { $in: [courseId] } },
+//       ],
+//     })
+//       .populate(
+//         "categoryId",
+//         "key title description image"
+//       )
+//       .populate(
+//         "courseId",
+//         "name description image sectionType categoryId"
+//       )
+//       .populate(
+//         "courseIds",
+//         "name description image sectionType categoryId"
+//       )
+//       .sort({ createdAt: -1 });
+
+//     // ✅ attach ratings + reviews
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "Tutors fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+
+//   } catch (err) {
+//     console.log("GET_TUTERS_BY_COURSE error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
 export async function GET_TUTERS_BY_COURSE(req, res) {
   try {
     const { courseId } = req.params;
 
-    // ✅ validate course id
     if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({
-        msg: "Invalid courseId",
-      });
+      return res.status(400).json({ msg: "Invalid courseId" });
     }
 
-    // ✅ get tutors from:
-    // 1. old single course data
-    // 2. new multiple courseIds data
     const tuters = await TuterSchema.find({
       isActive: true,
       $or: [
-        { courseId: courseId },
+        { courseId },
         { courseIds: { $in: [courseId] } },
       ],
     })
-      .populate(
-        "categoryId",
-        "key title description image"
-      )
-      .populate(
-        "courseId",
-        "name description image sectionType categoryId"
-      )
-      .populate(
-        "courseIds",
-        "name description image sectionType categoryId"
-      )
+      .populate("categoryId", "key title description image")
+      .populate("categoryIds", "key title description image")
+      .populate("courseId", "name description image sectionType categoryId")
+      .populate("courseIds", "name description image sectionType categoryId")
       .sort({ createdAt: -1 });
 
-    // ✅ attach ratings + reviews
     const data = await Promise.all(
       tuters.map((tuter) => attachRatingAndReviews(tuter))
     );
@@ -2203,25 +2534,11 @@ export async function GET_TUTERS_BY_COURSE(req, res) {
       count: data.length,
       tuters: data,
     });
-
   } catch (err) {
     console.log("GET_TUTERS_BY_COURSE error:", err.message);
-
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2268,6 +2585,39 @@ export async function GET_TUTERS_BY_COURSE(req, res) {
 
 
 
+// export async function GET_SINGLE_TUTER(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tuterId" });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId)
+//       .populate("categoryId", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .populate("createdBy", "name email role");
+
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tuter not found" });
+//     }
+
+//     const data = await attachRatingAndReviews(tuter);
+
+//     return res.status(200).json({
+//       msg: "Tuter fetched successfully",
+//       tuter: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_SINGLE_TUTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
 export async function GET_SINGLE_TUTER(req, res) {
   try {
     const { tuterId } = req.params;
@@ -2278,6 +2628,7 @@ export async function GET_SINGLE_TUTER(req, res) {
 
     const tuter = await TuterSchema.findById(tuterId)
       .populate("categoryId", "key title image")
+      .populate("categoryIds", "key title image")
       .populate("courseId", "name description image sectionType categoryId")
       .populate("courseIds", "name description image sectionType categoryId")
       .populate("createdBy", "name email role");
@@ -2297,11 +2648,6 @@ export async function GET_SINGLE_TUTER(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
-
 
 
 
@@ -2637,179 +2983,414 @@ export async function GET_SINGLE_TUTER(req, res) {
 
 
 
-export async function UPDATE_TUTER(req, res) {
-  try {
-    const { tuterId } = req.params;
+// export async function UPDATE_TUTER(req, res) {
+//   try {
+//     const { tuterId } = req.params;
 
-    const {
-      name,
-      email,
-      phone,
-      qualification,
-      about,
-      subjects,
-      categoryId,
-      sectionType,
-      syllabus,
-      isActive,
-    } = req.body;
+//     const {
+//       name,
+//       email,
+//       phone,
+//       qualification,
+//       about,
+//       subjects,
+//       categoryId,
+//       sectionType,
+//       syllabus,
+//       isActive,
+//     } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-      return res.status(400).json({ msg: "Invalid tuterId" });
-    }
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tuterId" });
+//     }
 
-    const tuter = await TuterSchema.findById(tuterId);
+//     const tuter = await TuterSchema.findById(tuterId);
 
-    if (!tuter) {
-      return res.status(404).json({ msg: "Tuter not found" });
-    }
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tuter not found" });
+//     }
 
-    const finalCategoryId = categoryId || tuter.categoryId;
+//     const finalCategoryId = categoryId || tuter.categoryId;
 
-    const incomingCourseIds = parseCourseIds(req.body);
+//     const incomingCourseIds = parseCourseIds(req.body);
 
-    const existingCourseIds =
-      Array.isArray(tuter.courseIds) && tuter.courseIds.length
-        ? tuter.courseIds.map((id) => String(id))
-        : tuter.courseId
-        ? [String(tuter.courseId)]
-        : [];
+//     const existingCourseIds =
+//       Array.isArray(tuter.courseIds) && tuter.courseIds.length
+//         ? tuter.courseIds.map((id) => String(id))
+//         : tuter.courseId
+//         ? [String(tuter.courseId)]
+//         : [];
 
-    const finalCourseIds = incomingCourseIds.length
-      ? incomingCourseIds
-      : existingCourseIds;
+//     const finalCourseIds = incomingCourseIds.length
+//       ? incomingCourseIds
+//       : existingCourseIds;
 
-    if (!mongoose.Types.ObjectId.isValid(finalCategoryId)) {
-      return res.status(400).json({ msg: "Invalid categoryId" });
-    }
+//     if (!mongoose.Types.ObjectId.isValid(finalCategoryId)) {
+//       return res.status(400).json({ msg: "Invalid categoryId" });
+//     }
 
-    if (!finalCourseIds.length || !hasValidObjectIds(finalCourseIds)) {
-      return res.status(400).json({ msg: "Invalid courseIds" });
-    }
+//     if (!finalCourseIds.length || !hasValidObjectIds(finalCourseIds)) {
+//       return res.status(400).json({ msg: "Invalid courseIds" });
+//     }
 
-    const category = await CategorySchema.findById(finalCategoryId);
+//     const category = await CategorySchema.findById(finalCategoryId);
 
-    if (!category) {
-      return res.status(404).json({ msg: "Category not found" });
-    }
+//     if (!category) {
+//       return res.status(404).json({ msg: "Category not found" });
+//     }
 
-    const courses = await CourseSchema.find({
-      _id: { $in: finalCourseIds },
-    });
+//     const courses = await CourseSchema.find({
+//       _id: { $in: finalCourseIds },
+//     });
 
-    if (courses.length !== finalCourseIds.length) {
-      return res.status(404).json({ msg: "One or more courses not found" });
-    }
+//     if (courses.length !== finalCourseIds.length) {
+//       return res.status(404).json({ msg: "One or more courses not found" });
+//     }
 
-    const invalidCategoryCourse = courses.find(
-      (course) => String(course.categoryId) !== String(finalCategoryId)
-    );
+//     const invalidCategoryCourse = courses.find(
+//       (course) => String(course.categoryId) !== String(finalCategoryId)
+//     );
 
-    if (invalidCategoryCourse) {
-      return res.status(400).json({
-        msg: "Selected courses must belong to selected category",
-      });
-    }
+//     if (invalidCategoryCourse) {
+//       return res.status(400).json({
+//         msg: "Selected courses must belong to selected category",
+//       });
+//     }
 
-    let finalSectionType = "none";
-    let finalSyllabus = "none";
+//     let finalSectionType = "none";
+//     let finalSyllabus = "none";
 
-    if (category.key === "online_tuition") {
-      const selectedSection = sectionType || tuter.sectionType;
+//     if (category.key === "online_tuition") {
+//       const selectedSection = sectionType || tuter.sectionType;
 
-      if (
-        !selectedSection ||
-        !["one_to_one", "batch", "both"].includes(selectedSection)
-      ) {
-        return res.status(400).json({
-          msg: "For Online Tuition, sectionType must be one_to_one, batch or both",
-        });
-      }
+//       if (
+//         !selectedSection ||
+//         !["one_to_one", "batch", "both"].includes(selectedSection)
+//       ) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, sectionType must be one_to_one, batch or both",
+//         });
+//       }
 
-      if (selectedSection !== "both") {
-        const invalidSectionCourse = courses.find(
-          (course) => course.sectionType !== selectedSection
-        );
+//       if (selectedSection !== "both") {
+//         const invalidSectionCourse = courses.find(
+//           (course) => course.sectionType !== selectedSection
+//         );
 
-        if (invalidSectionCourse) {
-          return res.status(400).json({
-            msg: "Selected courses do not belong to selected section",
-          });
-        }
-      }
+//         if (invalidSectionCourse) {
+//           return res.status(400).json({
+//             msg: "Selected courses do not belong to selected section",
+//           });
+//         }
+//       }
 
-      if (selectedSection === "both") {
-        const invalidBothCourse = courses.find(
-          (course) =>
-            course.sectionType !== "one_to_one" &&
-            course.sectionType !== "batch"
-        );
+//       if (selectedSection === "both") {
+//         const invalidBothCourse = courses.find(
+//           (course) =>
+//             course.sectionType !== "one_to_one" &&
+//             course.sectionType !== "batch"
+//         );
 
-        if (invalidBothCourse) {
-          return res.status(400).json({
-            msg: "For both, select only one-to-one or batch courses",
-          });
-        }
-      }
+//         if (invalidBothCourse) {
+//           return res.status(400).json({
+//             msg: "For both, select only one-to-one or batch courses",
+//           });
+//         }
+//       }
 
-      const selectedSyllabus =
-        syllabus !== undefined ? String(syllabus).trim() : String(tuter.syllabus || "").trim();
+//       const selectedSyllabus =
+//         syllabus !== undefined ? String(syllabus).trim() : String(tuter.syllabus || "").trim();
 
-      if (!selectedSyllabus || selectedSyllabus === "none") {
-        return res.status(400).json({
-          msg: "For Online Tuition, syllabus is required",
-        });
-      }
+//       if (!selectedSyllabus || selectedSyllabus === "none") {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, syllabus is required",
+//         });
+//       }
 
-      finalSectionType = selectedSection;
-      finalSyllabus = selectedSyllabus;
-    }
+//       finalSectionType = selectedSection;
+//       finalSyllabus = selectedSyllabus;
+//     }
 
-    if (name !== undefined) tuter.name = name.trim();
-    if (email !== undefined) tuter.email = email.trim().toLowerCase();
-    if (phone !== undefined) tuter.phone = phone.trim();
-    if (qualification !== undefined) tuter.qualification = qualification.trim();
-    if (about !== undefined) tuter.about = about.trim();
-    if (subjects !== undefined) tuter.subjects = parseSubjects(subjects);
+//     if (name !== undefined) tuter.name = name.trim();
+//     if (email !== undefined) tuter.email = email.trim().toLowerCase();
+//     if (phone !== undefined) tuter.phone = phone.trim();
+//     if (qualification !== undefined) tuter.qualification = qualification.trim();
+//     if (about !== undefined) tuter.about = about.trim();
+//     if (subjects !== undefined) tuter.subjects = parseSubjects(subjects);
 
-    tuter.categoryId = finalCategoryId;
-    tuter.courseId = finalCourseIds[0];
-    tuter.courseIds = finalCourseIds;
-    tuter.sectionType = finalSectionType;
-    tuter.syllabus = finalSyllabus;
+//     tuter.categoryId = finalCategoryId;
+//     tuter.courseId = finalCourseIds[0];
+//     tuter.courseIds = finalCourseIds;
+//     tuter.sectionType = finalSectionType;
+//     tuter.syllabus = finalSyllabus;
 
-    if (isActive !== undefined) {
-      tuter.isActive = isActive === "true" || isActive === true;
-    }
+//     if (isActive !== undefined) {
+//       tuter.isActive = isActive === "true" || isActive === true;
+//     }
 
-    if (req.file) {
-      if (
-        tuter.photo &&
-        !String(tuter.photo).startsWith("http") &&
-        fs.existsSync(tuter.photo)
-      ) {
-        fs.unlinkSync(tuter.photo);
-      }
+//     if (req.file) {
+//       if (
+//         tuter.photo &&
+//         !String(tuter.photo).startsWith("http") &&
+//         fs.existsSync(tuter.photo)
+//       ) {
+//         fs.unlinkSync(tuter.photo);
+//       }
 
-      tuter.photo = getUploadedFileUrl(req.file);
-    }
+//       tuter.photo = getUploadedFileUrl(req.file);
+//     }
 
-    await tuter.save();
+//     await tuter.save();
 
-    return res.status(200).json({
-      msg: "Tuter updated successfully",
-      tuter,
-    });
-  } catch (err) {
-    console.log("UPDATE_TUTER error:", err.message);
-    return res.status(500).json({ error: err.message });
-  }
+//     return res.status(200).json({
+//       msg: "Tuter updated successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("UPDATE_TUTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+export async function UPDATE_TUTER(req,res){
+
+try{
+
+const{tuterId}=req.params;
+
+if(
+!mongoose.Types.ObjectId
+.isValid(tuterId)
+){
+return res.status(400).json({
+msg:"Invalid tutor"
+});
 }
 
+const tuter=
+await TuterSchema.findById(
+tuterId
+);
 
+if(!tuter){
+return res.status(404).json({
+msg:"Tutor not found"
+});
+}
 
+const incomingCategoryIds=
+parseCategoryIds(req.body);
 
+const existingCategoryIds=
+Array.isArray(
+tuter.categoryIds
+)
+&&
+tuter.categoryIds.length
+?
+tuter.categoryIds.map(
+id=>String(id)
+)
+:
+[String(tuter.categoryId)];
 
+const finalCategoryIds=
+incomingCategoryIds.length
+?
+incomingCategoryIds
+:
+existingCategoryIds;
+
+const incomingCourseIds=
+parseCourseIds(req.body);
+
+const existingCourseIds=
+Array.isArray(
+tuter.courseIds
+)
+&&
+tuter.courseIds.length
+?
+tuter.courseIds.map(
+id=>String(id)
+)
+:
+[String(tuter.courseId)];
+
+const finalCourseIds=
+incomingCourseIds.length
+?
+incomingCourseIds
+:
+existingCourseIds;
+
+if(
+!hasValidObjectIds(
+finalCategoryIds
+)
+){
+return res.status(400).json({
+msg:"Invalid categories"
+});
+}
+
+if(
+!hasValidObjectIds(
+finalCourseIds
+)
+){
+return res.status(400).json({
+msg:"Invalid courses"
+});
+}
+
+const categories=
+await CategorySchema.find({
+_id:{
+$in:finalCategoryIds
+}
+});
+
+const courses=
+await CourseSchema.find({
+_id:{
+$in:finalCourseIds
+}
+});
+
+const invalidCourse=
+courses.find(
+course=>
+!finalCategoryIds.includes(
+String(course.categoryId)
+)
+);
+
+if(invalidCourse){
+return res.status(400).json({
+msg:"Course/category mismatch"
+});
+}
+
+const hasOnline=
+categories.some(
+cat=>
+cat.key==="online_tuition"
+);
+
+let finalSyllabus="none";
+
+let finalSectionType="none";
+
+if(hasOnline){
+
+const selectedSyllabus=
+req.body.syllabus
+??
+tuter.syllabus;
+
+if(
+!selectedSyllabus ||
+selectedSyllabus==="none"
+){
+return res.status(400).json({
+msg:"Syllabus required"
+});
+}
+
+finalSyllabus=
+String(
+selectedSyllabus
+).trim();
+
+finalSectionType=
+"both";
+
+}
+
+if(req.body.name)
+tuter.name=req.body.name;
+
+if(req.body.email)
+tuter.email=
+req.body.email
+.toLowerCase();
+
+if(req.body.phone)
+tuter.phone=
+req.body.phone;
+
+if(req.body.about)
+tuter.about=
+req.body.about;
+
+if(req.body.qualification)
+tuter.qualification=
+req.body.qualification;
+
+if(req.body.subjects)
+tuter.subjects=
+parseSubjects(
+req.body.subjects
+);
+
+tuter.categoryId=
+finalCategoryIds[0];
+
+tuter.categoryIds=
+finalCategoryIds;
+
+tuter.courseId=
+finalCourseIds[0];
+
+tuter.courseIds=
+finalCourseIds;
+
+tuter.sectionType=
+finalSectionType;
+
+tuter.syllabus=
+finalSyllabus;
+
+if(
+req.file
+){
+tuter.photo=
+getUploadedFileUrl(
+req.file
+);
+}
+
+await tuter.save();
+
+return res.status(200).json({
+msg:"Tutor updated",
+tuter
+});
+
+}
+catch(err){
+
+console.log(
+"UPDATE_TUTER",
+err.message
+);
+
+return res.status(500).json({
+error:err.message
+});
+
+}
+}
 
 
 
@@ -2970,10 +3551,36 @@ export async function ADD_TUTER_REVIEW(req, res) {
 
 
 
+// export async function GET_ALL_TUTERS_USER(req, res) {
+//   try {
+//     const tuters = await TuterSchema.find({ isActive: true })
+//       .populate("categoryId", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "All active tutors fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_TUTERS_USER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
 export async function GET_ALL_TUTERS_USER(req, res) {
   try {
     const tuters = await TuterSchema.find({ isActive: true })
       .populate("categoryId", "key title image")
+      .populate("categoryIds", "key title image")
       .populate("courseId", "name description image sectionType categoryId")
       .populate("courseIds", "name description image sectionType categoryId")
       .sort({ createdAt: -1 });
@@ -2992,9 +3599,6 @@ export async function GET_ALL_TUTERS_USER(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
 
 
 
@@ -3055,6 +3659,52 @@ export async function GET_ALL_TUTERS_USER(req, res) {
 
 
 
+// export async function GET_TUTERS_BY_CATEGORY(req, res) {
+//   try {
+//     const { categoryId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+//       return res.status(400).json({ msg: "Invalid categoryId" });
+//     }
+
+//     const category = await CategorySchema.findById(categoryId);
+
+//     if (!category) {
+//       return res.status(404).json({ msg: "Category not found" });
+//     }
+
+//     const tuters = await TuterSchema.find({
+//       categoryId,
+//       isActive: true,
+//     })
+//       .populate("categoryId", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "Tutors fetched by category successfully",
+//       category,
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_TUTERS_BY_CATEGORY error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
 export async function GET_TUTERS_BY_CATEGORY(req, res) {
   try {
     const { categoryId } = req.params;
@@ -3070,10 +3720,14 @@ export async function GET_TUTERS_BY_CATEGORY(req, res) {
     }
 
     const tuters = await TuterSchema.find({
-      categoryId,
       isActive: true,
+      $or: [
+        { categoryId },
+        { categoryIds: { $in: [categoryId] } },
+      ],
     })
       .populate("categoryId", "key title image")
+      .populate("categoryIds", "key title image")
       .populate("courseId", "name description image sectionType categoryId")
       .populate("courseIds", "name description image sectionType categoryId")
       .sort({ createdAt: -1 });
@@ -3093,6 +3747,8 @@ export async function GET_TUTERS_BY_CATEGORY(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
 
 
 
@@ -4565,124 +5221,6 @@ export async function GET_MY_FEEDBACK(req, res) {
 
 
 
-
-
-
-// //assign tutor for student
-
-
-
-// export async function ASSIGN_TUTORS_TO_STUDENT(req, res) {
-//   try {
-//     const { studentId } = req.params;
-//     const { tutorIds } = req.body;
-
-//     if (!mongoose.Types.ObjectId.isValid(studentId)) {
-//       return res.status(400).json({ msg: "Invalid studentId" });
-//     }
-
-//     if (!Array.isArray(tutorIds)) {
-//       return res.status(400).json({ msg: "tutorIds must be an array" });
-//     }
-
-//     const cleanTutorIds = [...new Set(tutorIds.map(String))].filter(Boolean);
-
-//     const invalidTutorId = cleanTutorIds.find(
-//       (id) => !mongoose.Types.ObjectId.isValid(id)
-//     );
-
-//     if (invalidTutorId) {
-//       return res.status(400).json({ msg: "Invalid tutorIds" });
-//     }
-
-//     const student = await UserSchema.findById(studentId);
-
-//     if (!student) {
-//       return res.status(404).json({ msg: "Student not found" });
-//     }
-
-//     const tutors = await TuterSchema.find({
-//       _id: { $in: cleanTutorIds },
-//       isActive: true,
-//     });
-
-//     if (tutors.length !== cleanTutorIds.length) {
-//       return res.status(404).json({ msg: "One or more tutors not found" });
-//     }
-
-//     const assignment = await StudentTutorAssignSchema.findOneAndUpdate(
-//       { studentId },
-//       {
-//         studentId,
-//         tutorIds: cleanTutorIds,
-//         assignedBy: req.user?._id,
-//       },
-//       { new: true, upsert: true }
-//     )
-//       .populate("studentId", "name email phone photo")
-//       .populate("tutorIds", "name email phone photo qualification subjects");
-
-//     return res.status(200).json({
-//       msg: "Tutors assigned successfully",
-//       assignment,
-//     });
-//   } catch (err) {
-//     console.log("ASSIGN_TUTORS_TO_STUDENT error:", err.message);
-//     return res.status(500).json({ error: err.message });
-//   }
-// }
-
-// export async function GET_ASSIGNED_TUTORS_BY_STUDENT(req, res) {
-//   try {
-//     const { studentId } = req.params;
-
-//     if (!mongoose.Types.ObjectId.isValid(studentId)) {
-//       return res.status(400).json({ msg: "Invalid studentId" });
-//     }
-
-//     const assignment = await StudentTutorAssignSchema.findOne({ studentId })
-//       .populate("studentId", "name email phone photo")
-//       .populate("tutorIds", "name email phone photo qualification subjects");
-
-//     return res.status(200).json({
-//       msg: "Assigned tutors fetched successfully",
-//       assignment,
-//       tutors: assignment?.tutorIds || [],
-//     });
-//   } catch (err) {
-//     console.log("GET_ASSIGNED_TUTORS_BY_STUDENT error:", err.message);
-//     return res.status(500).json({ error: err.message });
-//   }
-// }
-
-// export async function GET_ASSIGNED_STUDENTS_BY_TUTOR(req, res) {
-//   try {
-//     const { tuterId } = req.params;
-
-//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-//       return res.status(400).json({ msg: "Invalid tuterId" });
-//     }
-
-//     const assignments = await StudentTutorAssignSchema.find({
-//       tutorIds: tuterId,
-//     })
-//       .populate("studentId", "name email phone photo createdAt")
-//       .populate("tutorIds", "name");
-
-//     const students = assignments
-//       .map((item) => item.studentId)
-//       .filter(Boolean);
-
-//     return res.status(200).json({
-//       msg: "Assigned students fetched successfully",
-//       count: students.length,
-//       students,
-//     });
-//   } catch (err) {
-//     console.log("GET_ASSIGNED_STUDENTS_BY_TUTOR error:", err.message);
-//     return res.status(500).json({ error: err.message });
-//   }
-// }
 
 
 

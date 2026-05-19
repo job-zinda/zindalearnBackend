@@ -24,6 +24,12 @@ const TuterSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
+    categoryIds: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
+],
 
     // old support keep cheyyanam
     courseId: {
