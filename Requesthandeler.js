@@ -1488,24 +1488,24 @@ export async function DELETE_COURSE(req, res) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-function parseCourseIds(body) {
-  const raw = body.courseIds || body.courseId;
+// function parseCourseIds(body) {
+//   const raw = body.courseIds || body.courseId;
 
-  if (!raw) return [];
+//   if (!raw) return [];
 
-  if (Array.isArray(raw)) {
-    return raw.map((id) => String(id).trim()).filter(Boolean);
-  }
+//   if (Array.isArray(raw)) {
+//     return raw.map((id) => String(id).trim()).filter(Boolean);
+//   }
 
-  return String(raw)
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
+//   return String(raw)
+//     .split(",")
+//     .map((id) => id.trim())
+//     .filter(Boolean);function parseCourseIds
+// }
 
-function hasValidObjectIds(ids) {
-  return ids.every((id) => mongoose.Types.ObjectId.isValid(id));
-}
+// function hasValidObjectIds(ids) {
+//   return ids.every((id) => mongoose.Types.ObjectId.isValid(id));
+// }
 
 
 
