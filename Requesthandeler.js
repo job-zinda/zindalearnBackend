@@ -1826,18 +1826,61 @@ async function attachRatingAndReviews(tuter) {
 
 
 
-function parseCategoryIds(body) {
-  const raw = body.categoryIds || body.categoryId || [];
+// function parseCategoryIds(body) {
+//   const raw = body.categoryIds || body.categoryId || [];
 
-  if (Array.isArray(raw)) {
-    return raw.filter(Boolean).map(String);
-  }
+//   if (Array.isArray(raw)) {
+//     return raw.filter(Boolean).map(String);
+//   }
 
-  return String(raw)
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
+//   return String(raw)
+//     .split(",")
+//     .map((id) => id.trim())
+//     .filter(Boolean);
+// }
+
+
+
+
+
+
+// function parseCategoryIds(body) {
+//   const raw = body.categoryIds || body.categoryId || [];
+
+//   if (Array.isArray(raw)) {
+//     return raw.filter(Boolean).map(String);
+//   }
+
+//   return String(raw)
+//     .split(",")
+//     .map((id) => id.trim())
+//     .filter(Boolean);
+// }
+
+// function parseCourseIds(body) {
+//   const raw = body.courseIds || body.courseId || [];
+
+//   if (Array.isArray(raw)) {
+//     return raw.filter(Boolean).map(String);
+//   }
+
+//   return String(raw)
+//     .split(",")
+//     .map((id) => id.trim())
+//     .filter(Boolean);
+// }
+
+// function hasValidObjectIds(ids=[]) {
+//   return ids.every((id)=>
+//     mongoose.Types.ObjectId.isValid(id)
+//   );
+// }
+
+
+
+
+
+
 
 
 
@@ -1870,13 +1913,9 @@ function parseCourseIds(body) {
     .filter(Boolean);
 }
 
-function hasValidObjectIds(ids=[]) {
-  return ids.every((id)=>
-    mongoose.Types.ObjectId.isValid(id)
-  );
+function hasValidObjectIds(ids = []) {
+  return ids.every((id) => mongoose.Types.ObjectId.isValid(id));
 }
-
-
 
 
 
