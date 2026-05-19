@@ -1436,18 +1436,18 @@ export async function DELETE_COURSE(req, res) {
 
 // ===================== TUTER MANAGEMENT =====================
 
-function parseSubjects(subjects) {
-  if (!subjects) return [];
+// function parseSubjects(subjects) {
+//   if (!subjects) return [];
 
-  if (Array.isArray(subjects)) {
-    return subjects.map((s) => String(s).trim()).filter(Boolean);
-  }
+//   if (Array.isArray(subjects)) {
+//     return subjects.map((s) => String(s).trim()).filter(Boolean);
+//   }
 
-  return String(subjects)
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
+//   return String(subjects)
+//     .split(",")
+//     .map((s) => s.trim())
+//     .filter(Boolean);
+// }
 
 
 
