@@ -861,6 +861,42 @@ export async function UPDATE_MY_PROFILE(req, res) {
 
 
 
+// export async function DELETE_MY_ACCOUNT(req, res) {
+//   try {
+//     const user = await UserSchema.findById(req.user._id);
+
+//     if (!user) {
+//       return res.status(404).json({ msg: "User not found" });
+//     }
+
+//     await FeedbackSchema.deleteMany({ studentId: req.user._id });
+//     await TuterReviewSchema.deleteMany({ studentId: req.user._id });
+//     await ChatMessageSchema.deleteMany({ senderId: req.user._id });
+//     await ChatRoomSchema.deleteMany({
+//       $or: [{ studentId: req.user._id }, { adminId: req.user._id }],
+//     });
+
+//     await UserSchema.findByIdAndDelete(req.user._id);
+
+//     return res.status(200).json({
+//       msg: "Account deleted successfully",
+//     });
+//   } catch (err) {
+//     console.log("DELETE_MY_ACCOUNT error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
 export async function DELETE_MY_ACCOUNT(req, res) {
   try {
     const user = await UserSchema.findById(req.user._id);
@@ -871,6 +907,7 @@ export async function DELETE_MY_ACCOUNT(req, res) {
 
     await FeedbackSchema.deleteMany({ studentId: req.user._id });
     await TuterReviewSchema.deleteMany({ studentId: req.user._id });
+    await StudentTutorAssignSchema.deleteMany({ studentId: req.user._id });
     await ChatMessageSchema.deleteMany({ senderId: req.user._id });
     await ChatRoomSchema.deleteMany({
       $or: [{ studentId: req.user._id }, { adminId: req.user._id }],
@@ -886,8 +923,6 @@ export async function DELETE_MY_ACCOUNT(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
 
 
 
@@ -5017,38 +5052,89 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
 
 
 
+// export async function DELETE_STUDENT_ADMIN(req, res) {
+//   try {
+//     const { userId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(userId)) {
+//       return res.status(400).json({ msg: "Invalid userId" });
+//     }
+
+//     const user = await UserSchema.findOne({
+//       _id: userId,
+//       role: "student",
+//     });
+
+//     if (!user) {
+//       return res.status(404).json({ msg: "Student not found" });
+//     }
+
+//     await UserSchema.findByIdAndDelete(userId);
+
+//     return res.status(200).json({
+//       msg: "Student deleted successfully",
+//       deletedUser: user,
+//     });
+//   } catch (err) {
+//     console.log("DELETE_USER_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+// admin delete student
 export async function DELETE_STUDENT_ADMIN(req, res) {
   try {
     const { userId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ msg: "Invalid userId" });
+      return res.status(400).json({
+        msg: "Invalid student id",
+      });
     }
 
-    const user = await UserSchema.findOne({
+    const student = await UserSchema.findOne({
       _id: userId,
       role: "student",
     });
 
-    if (!user) {
-      return res.status(404).json({ msg: "Student not found" });
+    if (!student) {
+      return res.status(404).json({
+        msg: "Student not found",
+      });
     }
+
+    await FeedbackSchema.deleteMany({ studentId: userId });
+    await TuterReviewSchema.deleteMany({ studentId: userId });
+    await StudentTutorAssignSchema.deleteMany({ studentId: userId });
+    await ChatMessageSchema.deleteMany({ senderId: userId });
+    await ChatRoomSchema.deleteMany({
+      $or: [{ studentId: userId }, { adminId: userId }],
+    });
 
     await UserSchema.findByIdAndDelete(userId);
 
     return res.status(200).json({
       msg: "Student deleted successfully",
-      deletedUser: user,
+      deletedStudent: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+      },
     });
   } catch (err) {
-    console.log("DELETE_USER_ADMIN error:", err.message);
+    console.log("DELETE_STUDENT_ADMIN error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
 
 
 
@@ -6296,20 +6382,66 @@ export async function ADMIN_DASHBOARD(req, res) {
 
 
 
-//website feedback
+// //website feedback
+
+
+// export async function ADD_FEEDBACK(req, res) {
+//   try {
+//     const { rating, message } = req.body;
+
+//     if (!rating || rating < 1 || rating > 5) {
+//       return res.status(400).json({
+//         msg: "Rating must be between 1 and 5",
+//       });
+//     }
+
+//     if (!message || !message.trim()) {
+//       return res.status(400).json({
+//         msg: "Feedback message is required",
+//       });
+//     }
+
+//     const feedback = await FeedbackSchema.findOneAndUpdate(
+//       { studentId: req.user._id },
+//       {
+//         rating: Number(rating),
+//         message: message.trim(),
+//       },
+//       {
+//         new: true,
+//         upsert: true,
+//       }
+//     ).populate("studentId", "name email photo");
+
+//     return res.status(200).json({
+//       msg: "Feedback submitted successfully",
+//       feedback,
+//     });
+//   } catch (err) {
+//     console.log("ADD_FEEDBACK error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
 
 
 export async function ADD_FEEDBACK(req, res) {
   try {
     const { rating, message } = req.body;
 
-    if (!rating || rating < 1 || rating > 5) {
+    if (!rating || Number(rating) < 1 || Number(rating) > 5) {
       return res.status(400).json({
         msg: "Rating must be between 1 and 5",
       });
     }
 
-    if (!message || !message.trim()) {
+    if (!message || !String(message).trim()) {
       return res.status(400).json({
         msg: "Feedback message is required",
       });
@@ -6318,14 +6450,16 @@ export async function ADD_FEEDBACK(req, res) {
     const feedback = await FeedbackSchema.findOneAndUpdate(
       { studentId: req.user._id },
       {
+        studentId: req.user._id,
         rating: Number(rating),
-        message: message.trim(),
+        message: String(message).trim(),
       },
       {
         new: true,
         upsert: true,
+        runValidators: true,
       }
-    ).populate("studentId", "name email photo");
+    ).populate("studentId", "name email photo role isActive");
 
     return res.status(200).json({
       msg: "Feedback submitted successfully",
@@ -6340,21 +6474,66 @@ export async function ADD_FEEDBACK(req, res) {
 
 
 
+
+
 //get all feedback
+
+// export async function GET_ALL_FEEDBACK(req, res) {
+//   try {
+//     const feedbacks = await FeedbackSchema.find()
+//       .populate("studentId", "name email photo")
+//       .sort({ createdAt: -1 });
+
+//     return res.status(200).json({
+//       msg: "All feedback fetched successfully",
+//       count: feedbacks.length,
+//       feedbacks,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_FEEDBACK_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export async function GET_ALL_FEEDBACK(req, res) {
   try {
     const feedbacks = await FeedbackSchema.find()
-      .populate("studentId", "name email photo")
+      .populate("studentId", "name email photo role isActive")
       .sort({ createdAt: -1 });
+
+    // deleted student / inactive student / non-student feedback hide cheyyum
+    const cleanFeedbacks = feedbacks.filter((feedback) => {
+      const student = feedback.studentId;
+
+      if (!student) return false;
+      if (student.role !== "student") return false;
+      if (student.isActive === false) return false;
+
+      return true;
+    });
 
     return res.status(200).json({
       msg: "All feedback fetched successfully",
-      count: feedbacks.length,
-      feedbacks,
+      count: cleanFeedbacks.length,
+      feedbacks: cleanFeedbacks,
     });
   } catch (err) {
-    console.log("GET_ALL_FEEDBACK_ADMIN error:", err.message);
+    console.log("GET_ALL_FEEDBACK error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
@@ -6374,11 +6553,29 @@ export async function GET_ALL_FEEDBACK(req, res) {
 
 //get may feedback
 
+// export async function GET_MY_FEEDBACK(req, res) {
+//   try {
+//     const feedback = await FeedbackSchema.findOne({
+//       studentId: req.user._id,
+//     }).populate("studentId", "name email photo");
+
+//     return res.status(200).json({
+//       msg: "My feedback fetched successfully",
+//       feedback,
+//     });
+//   } catch (err) {
+//     console.log("GET_MY_FEEDBACK error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
 export async function GET_MY_FEEDBACK(req, res) {
   try {
     const feedback = await FeedbackSchema.findOne({
       studentId: req.user._id,
-    }).populate("studentId", "name email photo");
+    }).populate("studentId", "name email photo role isActive");
 
     return res.status(200).json({
       msg: "My feedback fetched successfully",
@@ -6396,11 +6593,27 @@ export async function GET_MY_FEEDBACK(req, res) {
 
 
 
+export async function DELETE_MY_FEEDBACK(req, res) {
+  try {
+    const feedback = await FeedbackSchema.findOneAndDelete({
+      studentId: req.user._id,
+    });
 
+    if (!feedback) {
+      return res.status(404).json({
+        msg: "No feedback found to delete",
+      });
+    }
 
-
-
-
+    return res.status(200).json({
+      msg: "Feedback deleted successfully",
+      deletedFeedbackId: feedback._id,
+    });
+  } catch (err) {
+    console.log("DELETE_MY_FEEDBACK error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
 
 
 

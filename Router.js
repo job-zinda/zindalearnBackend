@@ -140,8 +140,9 @@ router.route("/admin/tuter/:tuterId/assigned-students").get(Auth, adminOnly, rh.
 router
   .route("/admin/tuter/generate-password")
   .get(Auth, adminOnly, rh.GENERATE_TUTOR_PASSWORD);
-
-
+  
+//delete feedback
+router.route("/feedback/my").delete(Auth, studentOnly, rh.DELETE_MY_FEEDBACK);
 
 
 export default router;
