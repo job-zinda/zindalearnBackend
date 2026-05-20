@@ -341,8 +341,76 @@ export async function LOGIN(req, res) {
 
 
 
-//admin change password
+// //admin change password
 
+// export async function CHANGE_PASSWORD(req, res) {
+//   try {
+//     const { oldPass, newPass, confirmPass } = req.body;
+
+//     if (!oldPass || !newPass || !confirmPass) {
+//       return res.status(400).json({
+//         msg: "oldPass, newPass and confirmPass are required",
+//       });
+//     }
+
+//     if (newPass !== confirmPass) {
+//       return res.status(400).json({
+//         msg: "New password and confirm password do not match",
+//       });
+//     }
+
+//     const user = await UserSchema.findById(req.user._id);
+
+//     if (!user) {
+//       return res.status(404).json({
+//         msg: "User not found",
+//       });
+//     }
+
+//     const isMatch = await bcrypt.compare(oldPass, user.pass);
+
+//     if (!isMatch) {
+//       return res.status(401).json({
+//         msg: "Current password is incorrect",
+//       });
+//     }
+
+//     const samePassword = await bcrypt.compare(newPass, user.pass);
+
+//     if (samePassword) {
+//       return res.status(400).json({
+//         msg: "New password must be different from current password",
+//       });
+//     }
+
+//     user.pass = await bcrypt.hash(newPass, 10);
+//     user.passwordChangedAt = new Date();
+
+//     await user.save();
+
+//     return res.status(200).json({
+//       msg: "Password changed successfully",
+//     });
+//   } catch (err) {
+//     console.log("CHANGE_PASSWORD error:", err.message);
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+// change password
 export async function CHANGE_PASSWORD(req, res) {
   try {
     const { oldPass, newPass, confirmPass } = req.body;
@@ -388,19 +456,19 @@ export async function CHANGE_PASSWORD(req, res) {
 
     await user.save();
 
+    await syncTutorVisiblePassword(user, newPass);
+
     return res.status(200).json({
       msg: "Password changed successfully",
     });
   } catch (err) {
     console.log("CHANGE_PASSWORD error:", err.message);
+
     return res.status(500).json({
       error: err.message,
     });
   }
 }
-
-
-
 
 
 
@@ -507,22 +575,90 @@ export async function FORGOT_PASSWORD_VERIFY_OTP(req, res) {
 
 //reset password
 
+// export async function RESET_PASSWORD(req, res) {
+//   try {
+//     const { email, newpass, confirmpass } = req.body;
+
+//     if (!email || !newpass || !confirmpass) {
+//       return res.status(400).json({ msg: "All fields required" });
+//     }
+
+//     if (newpass !== confirmpass) {
+//       return res.status(400).json({ msg: "Password mismatch" });
+//     }
+
+//     const user = await UserSchema.findOne({ email });
+
+//     if (!user || !user.resetPasswordOtpVerified) {
+//       return res.status(403).json({ msg: "OTP not verified" });
+//     }
+
+//     const hashed = await bcrypt.hash(newpass, 10);
+
+//     user.pass = hashed;
+//     user.passwordChangedAt = new Date();
+
+//     // clear OTP
+//     user.resetPasswordOtp = null;
+//     user.resetPasswordOtpExpires = null;
+//     user.resetPasswordOtpVerified = false;
+
+//     await user.save();
+
+//     return res.status(200).json({ msg: "Password reset successful" });
+
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// reset password
 export async function RESET_PASSWORD(req, res) {
   try {
     const { email, newpass, confirmpass } = req.body;
 
     if (!email || !newpass || !confirmpass) {
-      return res.status(400).json({ msg: "All fields required" });
+      return res.status(400).json({
+        msg: "All fields required",
+      });
     }
 
     if (newpass !== confirmpass) {
-      return res.status(400).json({ msg: "Password mismatch" });
+      return res.status(400).json({
+        msg: "Password mismatch",
+      });
     }
 
-    const user = await UserSchema.findOne({ email });
+    const cleanEmail = String(email).toLowerCase().trim();
 
-    if (!user || !user.resetPasswordOtpVerified) {
-      return res.status(403).json({ msg: "OTP not verified" });
+    const user = await UserSchema.findOne({
+      email: cleanEmail,
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
+
+    if (!user.resetPasswordOtpVerified) {
+      return res.status(403).json({
+        msg: "OTP not verified",
+      });
     }
 
     const hashed = await bcrypt.hash(newpass, 10);
@@ -530,20 +666,25 @@ export async function RESET_PASSWORD(req, res) {
     user.pass = hashed;
     user.passwordChangedAt = new Date();
 
-    // clear OTP
     user.resetPasswordOtp = null;
     user.resetPasswordOtpExpires = null;
     user.resetPasswordOtpVerified = false;
 
     await user.save();
 
-    return res.status(200).json({ msg: "Password reset successful" });
+    await syncTutorVisiblePassword(user, newpass);
 
+    return res.status(200).json({
+      msg: "Password reset successful",
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.log("RESET_PASSWORD error:", err.message);
+
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 }
-
 
 
 
@@ -6838,3 +6979,26 @@ function parseArrayIds(value) {
 //   if (!file) return "";
 //   return String(file.secure_url || file.url || file.path || "").replace(/\\/g, "/");
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+async function syncTutorVisiblePassword(user, newPassword) {
+  if (!user || user.role !== "tutor") return;
+
+  await TuterSchema.findOneAndUpdate(
+    { loginUserId: user._id },
+    {
+      loginPasswordText: String(newPassword),
+    },
+    { new: true }
+  );
+}
