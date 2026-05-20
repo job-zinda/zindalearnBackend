@@ -135,6 +135,13 @@ router.route("/admin/student/:studentId/assigned-tutors").get(Auth, adminOnly, r
 router.route("/admin/tuter/:tuterId/assigned-students").get(Auth, adminOnly, rh.GET_ASSIGNED_STUDENTS_BY_TUTOR);
 
 
+//generate tutor password
+
+router
+  .route("/admin/tuter/generate-password")
+  .get(Auth, adminOnly, rh.GENERATE_TUTOR_PASSWORD);
+
+
 
 
 export default router;
