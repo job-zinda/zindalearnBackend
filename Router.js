@@ -157,6 +157,16 @@ router
   .route("/admin/tuter/block/:tuterId")
   .patch(Auth, adminOnly, rh.TOGGLE_TUTER_BLOCK_STATUS_ADMIN);
 
+  //block student
+
+  router
+.route("/admin/student/block/:userId")
+.patch(
+Auth,
+adminOnly,
+rh.TOGGLE_STUDENT_BLOCK_STATUS_ADMIN
+);
+
 
 
 export default router;

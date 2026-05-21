@@ -7612,3 +7612,81 @@ export async function TOGGLE_TUTER_BLOCK_STATUS_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export async function TOGGLE_STUDENT_BLOCK_STATUS_ADMIN(req,res){
+
+try{
+
+const {userId}=req.params;
+const {isBlocked}=req.body;
+
+if(
+!mongoose.Types.ObjectId.isValid(userId)
+){
+return res.status(400).json({
+msg:"Invalid student id"
+});
+}
+
+const student=
+await User.findById(userId);
+
+if(!student){
+
+return res.status(404).json({
+msg:"Student not found"
+});
+
+}
+
+student.isBlocked=
+isBlocked===true ||
+isBlocked==="true";
+
+student.isActive=
+!student.isBlocked;
+
+await student.save();
+
+return res.status(200).json({
+
+msg:
+student.isBlocked
+?
+"Student blocked successfully"
+:
+"Student unblocked successfully",
+
+student
+
+});
+
+}catch(err){
+
+console.log(err);
+
+return res.status(500).json({
+error:err.message
+})
+
+}
+
+}
