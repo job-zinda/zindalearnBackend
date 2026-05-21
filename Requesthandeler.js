@@ -7631,62 +7631,132 @@ export async function TOGGLE_TUTER_BLOCK_STATUS_ADMIN(req, res) {
 
 
 
-export async function TOGGLE_STUDENT_BLOCK_STATUS_ADMIN(req,res){
+// export async function TOGGLE_STUDENT_BLOCK_STATUS_ADMIN(req,res){
 
-try{
+// try{
 
-const {userId}=req.params;
-const {isBlocked}=req.body;
+// const {userId}=req.params;
+// const {isBlocked}=req.body;
 
-if(
-!mongoose.Types.ObjectId.isValid(userId)
-){
-return res.status(400).json({
-msg:"Invalid student id"
-});
-}
+// if(
+// !mongoose.Types.ObjectId.isValid(userId)
+// ){
+// return res.status(400).json({
+// msg:"Invalid student id"
+// });
+// }
 
-const student=
-await UserSchema.findById(userId);
+// const student=
+// await UserSchema.findById(userId);
 
-if(!student){
+// if(!student){
 
-return res.status(404).json({
-msg:"Student not found"
-});
+// return res.status(404).json({
+// msg:"Student not found"
+// });
 
-}
+// }
 
-student.isBlocked=
-isBlocked===true ||
-isBlocked==="true";
+// student.isBlocked=
+// isBlocked===true ||
+// isBlocked==="true";
 
-student.isActive=
-!student.isBlocked;
+// student.isActive=
+// !student.isBlocked;
 
-await student.save();
+// await student.save();
 
-return res.status(200).json({
+// return res.status(200).json({
 
-msg:
-student.isBlocked
-?
-"Student blocked successfully"
-:
-"Student unblocked successfully",
+// msg:
+// student.isBlocked
+// ?
+// "Student blocked successfully"
+// :
+// "Student unblocked successfully",
 
-student
+// student
 
-});
+// });
 
-}catch(err){
+// }catch(err){
 
-console.log(err);
+// console.log(err);
 
-return res.status(500).json({
-error:err.message
-})
+// return res.status(500).json({
+// error:err.message
+// })
 
-}
+// }
 
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export async function TOGGLE_STUDENT_BLOCK_STATUS_ADMIN(req, res) {
+  try {
+    const { userId } = req.params;
+    const { isBlocked } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        msg: "Invalid student id",
+      });
+    }
+
+    const student = await UserSchema.findById(userId);
+
+    if (!student) {
+      return res.status(404).json({
+        msg: "Student not found",
+      });
+    }
+
+    student.isBlocked = isBlocked === true || isBlocked === "true";
+
+    await student.save();
+
+    return res.status(200).json({
+      msg: student.isBlocked
+        ? "Student blocked successfully"
+        : "Student unblocked successfully",
+      student,
+    });
+  } catch (err) {
+    console.log("TOGGLE_STUDENT_BLOCK_STATUS_ADMIN error:", err.message);
+
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
 }
