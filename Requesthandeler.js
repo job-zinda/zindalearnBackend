@@ -7647,7 +7647,7 @@ msg:"Invalid student id"
 }
 
 const student=
-await User.findById(userId);
+await UserSchema.findById(userId);
 
 if(!student){
 
