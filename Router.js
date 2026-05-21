@@ -152,6 +152,11 @@ router
   .put(Auth, adminOnly, rh.RE_ENABLE_TUTOR_LOGIN_USERS);///////////////////////////////////////////
 
 
+//block tutor
+router
+  .route("/admin/tuter/block/:tuterId")
+  .patch(Auth, adminOnly, rh.TOGGLE_TUTER_BLOCK_STATUS_ADMIN);
+
 
 
 export default router;

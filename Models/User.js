@@ -155,6 +155,11 @@ const UserSchema = new mongoose.Schema(
 
     isActive: { type: Boolean, default: true },
 
+    isBlocked: {
+  type: Boolean,
+  default: false,
+},
+
     invitedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

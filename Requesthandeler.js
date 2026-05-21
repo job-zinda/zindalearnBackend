@@ -283,11 +283,22 @@ export async function LOGIN(req, res) {
       });
     }
 
-    if (user.isActive === false) {
-      return res.status(403).json({
-        msg: "Account blocked by admin",
-      });
-    }
+    // if (user.isActive === false) {
+    //   return res.status(403).json({
+    //     msg: "Account blocked by admin",
+    //   });
+    // }
+
+
+
+
+if (user.isBlocked === true || user.isActive === false) {
+  return res.status(403).json({
+    msg: "Account blocked by admin",
+  });
+}
+
+
 
     const success = await bcrypt.compare(pass, user.pass);
 
@@ -4562,19 +4573,77 @@ export async function UPDATE_TUTER(req, res) {
 
 
 
+// // admin delete tuter
+// export async function DELETE_TUTER(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tuterId" });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tuter not found" });
+//     }
+
+//     if (
+//       tuter.photo &&
+//       !String(tuter.photo).startsWith("http") &&
+//       fs.existsSync(tuter.photo)
+//     ) {
+//       fs.unlinkSync(tuter.photo);
+//     }
+
+//     await TuterReviewSchema.deleteMany({ tuterId });
+
+//     if (tuter.loginUserId) {
+//       await UserSchema.findByIdAndDelete(tuter.loginUserId);
+//     }
+
+//     await TuterSchema.findByIdAndDelete(tuterId);
+
+//     return res.status(200).json({
+//       msg: "Tuter deleted successfully",
+//       deletedTuter: tuter,
+//     });
+//   } catch (err) {
+//     console.log("DELETE_TUTER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
 // admin delete tuter
 export async function DELETE_TUTER(req, res) {
   try {
     const { tuterId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-      return res.status(400).json({ msg: "Invalid tuterId" });
+      return res.status(400).json({
+        msg: "Invalid tuterId",
+      });
     }
 
     const tuter = await TuterSchema.findById(tuterId);
 
     if (!tuter) {
-      return res.status(404).json({ msg: "Tuter not found" });
+      return res.status(404).json({
+        msg: "Tuter not found",
+      });
+    }
+
+    if (tuter.loginUserId) {
+      await UserSchema.findByIdAndDelete(tuter.loginUserId);
     }
 
     if (
@@ -4586,11 +4655,7 @@ export async function DELETE_TUTER(req, res) {
     }
 
     await TuterReviewSchema.deleteMany({ tuterId });
-
-    if (tuter.loginUserId) {
-      await UserSchema.findByIdAndDelete(tuter.loginUserId);
-    }
-
+    await StudentTutorAssignSchema.deleteMany({ tuterId });
     await TuterSchema.findByIdAndDelete(tuterId);
 
     return res.status(200).json({
@@ -4599,12 +4664,12 @@ export async function DELETE_TUTER(req, res) {
     });
   } catch (err) {
     console.log("DELETE_TUTER error:", err.message);
-    return res.status(500).json({ error: err.message });
+
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 }
-
-
-
 
 
 
@@ -5238,34 +5303,130 @@ export async function DELETE_STUDENT_ADMIN(req, res) {
 
 
 
-// admin active / deactive tuter
+// // admin active / deactive tuter
+// export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+//     const { isActive } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({
+//         msg: "Invalid tuterId",
+//       });
+//     }
+
+//     if (isActive === undefined) {
+//       return res.status(400).json({
+//         msg: "isActive is required. Send true or false",
+//       });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({
+//         msg: "Tuter not found",
+//       });
+//     }
+
+//     // ✅ This is only for showing / hiding tutor profile from students
+//     // ✅ Do NOT block tutor login user here
+//     tuter.isActive = isActive === true || isActive === "true";
+
+//     await tuter.save();
+
+//     return res.status(200).json({
+//       msg: tuter.isActive
+//         ? "Tuter activated successfully"
+//         : "Tuter deactivated successfully. Tutor can still login, but profile is hidden from students.",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+
+
+// // admin active / deactive tuter
+// export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+//     const { isActive } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({
+//         msg: "Invalid tuterId",
+//       });
+//     }
+
+//     if (isActive === undefined) {
+//       return res.status(400).json({
+//         msg: "isActive is required. Send true or false",
+//       });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({
+//         msg: "Tuter not found",
+//       });
+//     }
+
+//     // ✅ deactivate only hides tutor profile from students
+//     // ✅ tutor login should NOT be blocked here
+//     tuter.isActive = isActive === true || isActive === "true";
+
+//     await tuter.save();
+
+//     return res.status(200).json({
+//       msg: tuter.isActive
+//         ? "Tuter activated successfully"
+//         : "Tuter deactivated successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+
+
+
+
+
+
+
 export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
   try {
     const { tuterId } = req.params;
     const { isActive } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-      return res.status(400).json({
-        msg: "Invalid tuterId",
-      });
+      return res.status(400).json({ msg: "Invalid tuterId" });
     }
 
     if (isActive === undefined) {
       return res.status(400).json({
-        msg: "isActive is required. Send true or false",
+        msg: "isActive is required",
       });
     }
 
     const tuter = await TuterSchema.findById(tuterId);
 
     if (!tuter) {
-      return res.status(404).json({
-        msg: "Tuter not found",
-      });
+      return res.status(404).json({ msg: "Tuter not found" });
     }
 
-    // ✅ This is only for showing / hiding tutor profile from students
-    // ✅ Do NOT block tutor login user here
     tuter.isActive = isActive === true || isActive === "true";
 
     await tuter.save();
@@ -5273,19 +5434,14 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
     return res.status(200).json({
       msg: tuter.isActive
         ? "Tuter activated successfully"
-        : "Tuter deactivated successfully. Tutor can still login, but profile is hidden from students.",
+        : "Tuter deactivated successfully",
       tuter,
     });
   } catch (err) {
     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
-
-    return res.status(500).json({
-      error: err.message,
-    });
+    return res.status(500).json({ error: err.message });
   }
 }
-
-
 
 
 
@@ -7329,3 +7485,130 @@ export async function RE_ENABLE_TUTOR_LOGIN_USERS(req, res) {
   }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+//block tutor
+
+
+
+
+
+// // admin block / unblock tutor login
+// export async function TOGGLE_TUTER_BLOCK_STATUS_ADMIN(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+//     const { isBlocked } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({
+//         msg: "Invalid tuterId",
+//       });
+//     }
+
+//     if (isBlocked === undefined) {
+//       return res.status(400).json({
+//         msg: "isBlocked is required. Send true or false",
+//       });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({
+//         msg: "Tuter not found",
+//       });
+//     }
+
+//     const finalBlocked = isBlocked === true || isBlocked === "true";
+
+//     tuter.isBlocked = finalBlocked;
+
+//     // ✅ Block means tutor cannot login
+//     // ✅ Unblock means tutor can login again
+//     if (tuter.loginUserId) {
+//       await UserSchema.findByIdAndUpdate(tuter.loginUserId, {
+//         isActive: !finalBlocked,
+//       });
+//     }
+
+//     await tuter.save();
+
+//     return res.status(200).json({
+//       msg: finalBlocked
+//         ? "Tuter blocked successfully. Tutor cannot login now."
+//         : "Tuter unblocked successfully. Tutor can login now.",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("TOGGLE_TUTER_BLOCK_STATUS_ADMIN error:", err.message);
+
+//     return res.status(500).json({
+//       error: err.message,
+//     });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+export async function TOGGLE_TUTER_BLOCK_STATUS_ADMIN(req, res) {
+  try {
+    const { tuterId } = req.params;
+    const { isBlocked } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+      return res.status(400).json({ msg: "Invalid tuterId" });
+    }
+
+    if (isBlocked === undefined) {
+      return res.status(400).json({
+        msg: "isBlocked is required",
+      });
+    }
+
+    const tuter = await TuterSchema.findById(tuterId);
+
+    if (!tuter) {
+      return res.status(404).json({ msg: "Tuter not found" });
+    }
+
+    const finalBlocked = isBlocked === true || isBlocked === "true";
+
+    tuter.isBlocked = finalBlocked;
+
+    if (tuter.loginUserId) {
+      await UserSchema.findByIdAndUpdate(tuter.loginUserId, {
+        isBlocked: finalBlocked,
+        isActive: !finalBlocked,
+      });
+    }
+
+    await tuter.save();
+
+    return res.status(200).json({
+      msg: finalBlocked
+        ? "Tuter blocked successfully"
+        : "Tuter unblocked successfully",
+      tuter,
+    });
+  } catch (err) {
+    console.log("TOGGLE_TUTER_BLOCK_STATUS_ADMIN error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}

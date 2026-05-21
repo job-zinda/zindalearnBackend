@@ -173,6 +173,16 @@ const TuterSchema = new mongoose.Schema(
 
     isActive: { type: Boolean, default: true },
 
+
+
+
+isBlocked: {
+  type: Boolean,
+  default: false,
+},
+
+
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
