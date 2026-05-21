@@ -145,4 +145,13 @@ router
 router.route("/feedback/my").delete(Auth, studentOnly, rh.DELETE_MY_FEEDBACK);
 
 
+
+
+router
+  .route("/admin/tuter/re-enable-login-users")
+  .put(Auth, adminOnly, rh.RE_ENABLE_TUTOR_LOGIN_USERS);///////////////////////////////////////////
+
+
+
+
 export default router;

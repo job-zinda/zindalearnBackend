@@ -5185,6 +5185,59 @@ export async function DELETE_STUDENT_ADMIN(req, res) {
 
 
 
+// // admin active / deactive tuter
+// export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+//     const { isActive } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tuterId" });
+//     }
+
+//     if (isActive === undefined) {
+//       return res.status(400).json({
+//         msg: "isActive is required. Send true or false",
+//       });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tuter not found" });
+//     }
+
+//     tuter.isActive = isActive === true || isActive === "true";
+
+//     await tuter.save();
+
+//     if (tuter.loginUserId) {
+//       await UserSchema.findByIdAndUpdate(tuter.loginUserId, {
+//         isActive: tuter.isActive,
+//       });
+//     }
+
+//     return res.status(200).json({
+//       msg: tuter.isActive
+//         ? "Tuter activated successfully"
+//         : "Tuter deactivated successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
 // admin active / deactive tuter
 export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
   try {
@@ -5192,7 +5245,9 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
     const { isActive } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-      return res.status(400).json({ msg: "Invalid tuterId" });
+      return res.status(400).json({
+        msg: "Invalid tuterId",
+      });
     }
 
     if (isActive === undefined) {
@@ -5204,30 +5259,36 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
     const tuter = await TuterSchema.findById(tuterId);
 
     if (!tuter) {
-      return res.status(404).json({ msg: "Tuter not found" });
+      return res.status(404).json({
+        msg: "Tuter not found",
+      });
     }
 
+    // ✅ This is only for showing / hiding tutor profile from students
+    // ✅ Do NOT block tutor login user here
     tuter.isActive = isActive === true || isActive === "true";
 
     await tuter.save();
 
-    if (tuter.loginUserId) {
-      await UserSchema.findByIdAndUpdate(tuter.loginUserId, {
-        isActive: tuter.isActive,
-      });
-    }
-
     return res.status(200).json({
       msg: tuter.isActive
         ? "Tuter activated successfully"
-        : "Tuter deactivated successfully",
+        : "Tuter deactivated successfully. Tutor can still login, but profile is hidden from students.",
       tuter,
     });
   } catch (err) {
     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
-    return res.status(500).json({ error: err.message });
+
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 }
+
+
+
+
+
 
 
 
@@ -7215,3 +7276,56 @@ async function syncTutorVisiblePassword(user, newPassword) {
     { new: true }
   );
 }
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// one-time fix: re-enable tutor login users
+export async function RE_ENABLE_TUTOR_LOGIN_USERS(req, res) {
+  try {
+    const tutors = await TuterSchema.find({
+      loginUserId: { $exists: true, $ne: null },
+    });
+
+    const loginUserIds = tutors
+      .map((tutor) => tutor.loginUserId)
+      .filter(Boolean);
+
+    if (loginUserIds.length === 0) {
+      return res.status(200).json({
+        msg: "No tutor login users found",
+        updatedCount: 0,
+      });
+    }
+
+    const result = await UserSchema.updateMany(
+      {
+        _id: { $in: loginUserIds },
+        role: "tutor",
+      },
+      {
+        $set: { isActive: true },
+      }
+    );
+
+    return res.status(200).json({
+      msg: "Tutor login users re-enabled successfully",
+      updatedCount: result.modifiedCount || 0,
+    });
+  } catch (err) {
+    console.log("RE_ENABLE_TUTOR_LOGIN_USERS error:", err.message);
+
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
