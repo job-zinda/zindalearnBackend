@@ -137,9 +137,7 @@ router.route("/admin/tuter/:tuterId/assigned-students").get(Auth, adminOnly, rh.
 
 //generate tutor password
 
-router
-  .route("/admin/tuter/generate-password")
-  .get(Auth, adminOnly, rh.GENERATE_TUTOR_PASSWORD);
+router.route("/admin/tuter/generate-password").get(Auth, adminOnly, rh.GENERATE_TUTOR_PASSWORD);
   
 //delete feedback
 router.route("/feedback/my").delete(Auth, studentOnly, rh.DELETE_MY_FEEDBACK);
