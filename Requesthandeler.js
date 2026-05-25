@@ -161,6 +161,22 @@ export async function LOGIN(req, res) {
 
 
 
+// if (user.isBlocked === true || user.isActive === false) {
+//   return res.status(403).json({
+//     msg: "Account blocked by admin",
+//   });
+// }
+
+
+
+
+
+
+
+
+
+
+
 if (user.isBlocked === true || user.isActive === false) {
   return res.status(403).json({
     msg: "Account blocked by admin",
@@ -2278,9 +2294,118 @@ export async function ADD_TUTER_REVIEW(req, res) {
 
 
 
+// export async function GET_ALL_TUTERS_USER(req, res) {
+//   try {
+//     const tuters = await TuterSchema.find({ isActive: true })
+//       .populate("categoryId", "key title image")
+//       .populate("categoryIds", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "All active tutors fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_TUTERS_USER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+// export async function GET_ALL_TUTERS_USER(req, res) {
+//   try {
+//     const loggedUserId = req.user?._id;
+//     const loggedUserEmail = String(req.user?.email || "").toLowerCase().trim();
+//     const loggedUserRole = req.user?.role;
+
+//     let query = {
+//       isActive: true,
+//       isBlocked: { $ne: true },
+//     };
+
+//     if (loggedUserRole === "tutor") {
+//       query = {
+//         isBlocked: { $ne: true },
+//         $or: [
+//           { isActive: true },
+//           { loginUserId: loggedUserId },
+//           { email: loggedUserEmail },
+//         ],
+//       };
+//     }
+
+//     const tuters = await TuterSchema.find(query)
+//       .populate("categoryId", "key title image")
+//       .populate("categoryIds", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "Tutors fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_TUTERS_USER error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 export async function GET_ALL_TUTERS_USER(req, res) {
   try {
-    const tuters = await TuterSchema.find({ isActive: true })
+    const loggedUserId = req.user?._id || req.user?.id;
+    const loggedUserEmail = String(req.user?.email || "").toLowerCase().trim();
+    const loggedUserRole = String(req.user?.role || "").toLowerCase().trim();
+
+    let query = {
+      isActive: true,
+      isBlocked: { $ne: true },
+    };
+
+    // Tutor login cheythal:
+    // 1. Active tutors ellam kanam
+    // 2. Than deactive aanenkilum thante own tutor card kanam
+    // 3. Vere deactive tutors kanaruth
+    if (loggedUserRole === "tutor") {
+      query = {
+        isBlocked: { $ne: true },
+        $or: [
+          { isActive: true },
+          { loginUserId: loggedUserId },
+          { email: loggedUserEmail },
+        ],
+      };
+    }
+
+    const tuters = await TuterSchema.find(query)
       .populate("categoryId", "key title image")
       .populate("categoryIds", "key title image")
       .populate("courseId", "name description image sectionType categoryId")
@@ -2292,7 +2417,7 @@ export async function GET_ALL_TUTERS_USER(req, res) {
     );
 
     return res.status(200).json({
-      msg: "All active tutors fetched successfully",
+      msg: "Tutors fetched successfully",
       count: data.length,
       tuters: data,
     });
@@ -2301,6 +2426,11 @@ export async function GET_ALL_TUTERS_USER(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+
+
+
 
 
 
@@ -2558,35 +2688,71 @@ export async function DELETE_STUDENT_ADMIN(req, res) {
 
 
 
+// export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+//     const { isActive } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tuterId" });
+//     }
+
+//     if (isActive === undefined) {
+//       return res.status(400).json({
+//         msg: "isActive is required",
+//       });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tuter not found" });
+//     }
+
+//     tuter.isActive = isActive === true || isActive === "true";
+
+//     await tuter.save();
+
+//     return res.status(200).json({
+//       msg: tuter.isActive
+//         ? "Tuter activated successfully"
+//         : "Tuter deactivated successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
 export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
   try {
     const { tuterId } = req.params;
-    const { isActive } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
-      return res.status(400).json({ msg: "Invalid tuterId" });
-    }
-
-    if (isActive === undefined) {
-      return res.status(400).json({
-        msg: "isActive is required",
-      });
+      return res.status(400).json({ msg: "Invalid tutor id" });
     }
 
     const tuter = await TuterSchema.findById(tuterId);
 
     if (!tuter) {
-      return res.status(404).json({ msg: "Tuter not found" });
+      return res.status(404).json({ msg: "Tutor not found" });
     }
 
-    tuter.isActive = isActive === true || isActive === "true";
-
+    tuter.isActive = !tuter.isActive;
     await tuter.save();
 
     return res.status(200).json({
       msg: tuter.isActive
-        ? "Tuter activated successfully"
-        : "Tuter deactivated successfully",
+        ? "Tutor activated successfully"
+        : "Tutor deactivated successfully",
       tuter,
     });
   } catch (err) {
@@ -2594,6 +2760,19 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
