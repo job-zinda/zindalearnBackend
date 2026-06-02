@@ -488,7 +488,50 @@ export async function RESET_PASSWORD(req, res) {
 
 //upload photo
 
-// ✅ upload profile photo by logged-in user
+
+
+
+
+
+
+// // ✅ upload profile photo by logged-in user
+// export async function UPLOAD_PROFILE_PHOTO(req, res) {
+//   try {
+//     const { photo } = req.body;
+
+//     if (!photo) {
+//       return res.status(400).json({ msg: "Photo is required" });
+//     }
+
+//     const updatedUser = await UserSchema.findByIdAndUpdate(
+//       req.user._id,
+//       { photo },
+//       { new: true }
+//     ).select("-pass");
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ msg: "User not found" });
+//     }
+
+//     return res.status(200).json({
+//       msg: "Profile photo uploaded successfully",
+//       user: updatedUser,
+//     });
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
 export async function UPLOAD_PROFILE_PHOTO(req, res) {
   try {
     const { photo } = req.body;
@@ -507,6 +550,8 @@ export async function UPLOAD_PROFILE_PHOTO(req, res) {
       return res.status(404).json({ msg: "User not found" });
     }
 
+    await syncTutorProfile(updatedUser);
+
     return res.status(200).json({
       msg: "Profile photo uploaded successfully",
       user: updatedUser,
@@ -515,6 +560,8 @@ export async function UPLOAD_PROFILE_PHOTO(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
 
 
 
@@ -555,6 +602,124 @@ export async function GET_MY_PROFILE(req, res) {
 
 
 
+// export async function UPDATE_MY_PROFILE(req, res) {
+//   try {
+//     const { name, email, phone, syllabus, photo } = req.body;
+
+//     const user = await UserSchema.findById(req.user._id);
+
+//     if (!user) {
+//       return res.status(404).json({ msg: "User not found" });
+//     }
+
+//     if (email && email !== user.email) {
+//       const cleanEmail = email.toLowerCase().trim();
+
+//       const existingUser = await UserSchema.findOne({
+//         email: cleanEmail,
+//         _id: { $ne: req.user._id },
+//       });
+
+//       if (existingUser) {
+//         return res.status(409).json({ msg: "Email already in use" });
+//       }
+
+//       user.email = cleanEmail;
+//     }
+
+//     if (phone !== undefined) {
+//       const cleanPhone = String(phone).trim();
+
+//       if (cleanPhone) {
+//         const existingPhone = await UserSchema.findOne({
+//           phone: cleanPhone,
+//           _id: { $ne: req.user._id },
+//         });
+
+//         if (existingPhone) {
+//           return res.status(409).json({ msg: "Phone number already in use" });
+//         }
+//       }
+
+//       user.phone = cleanPhone;
+//     }
+
+//     if (name !== undefined) {
+//       user.name = name.trim();
+//     }
+
+//     if (syllabus) {
+//       const allowedSyllabus = ["state", "cbse", "icse"];
+
+//       if (!allowedSyllabus.includes(syllabus.toLowerCase())) {
+//         return res.status(400).json({
+//           msg: "Invalid syllabus. Choose state, cbse or icse",
+//         });
+//       }
+
+//       user.syllabus = syllabus.toLowerCase();
+//     }
+
+//     if (photo !== undefined) {
+//       user.photo = photo;
+//     }
+
+//     await user.save();
+
+//     return res.status(200).json({
+//       msg: "Profile updated successfully",
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone,
+//         role: user.role,
+//         photo: user.photo,
+//         isActive: user.isActive,
+//       },
+//     });
+//   } catch (err) {
+//     console.log("UPDATE_MY_PROFILE error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   } UPLOAD_PROFILE_PHOTO
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function syncTutorProfile(user) {
+  if (!user || user.role !== "tutor") return;
+
+  await TuterSchema.findOneAndUpdate(
+    { loginUserId: user._id },
+    {
+      $set: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        photo: user.photo,
+        isActive: user.isActive,
+        isBlocked: user.isBlocked,
+      },
+    },
+    { new: true }
+  );
+}
+
 export async function UPDATE_MY_PROFILE(req, res) {
   try {
     const { name, email, phone, syllabus, photo } = req.body;
@@ -565,16 +730,34 @@ export async function UPDATE_MY_PROFILE(req, res) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    if (email && email !== user.email) {
-      const cleanEmail = email.toLowerCase().trim();
+    if (email !== undefined) {
+      const cleanEmail = String(email).toLowerCase().trim();
+
+      if (!cleanEmail) {
+        return res.status(400).json({ msg: "Email is required" });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ msg: "Please enter a valid email address" });
+      }
 
       const existingUser = await UserSchema.findOne({
         email: cleanEmail,
-        _id: { $ne: req.user._id },
+        _id: { $ne: user._id },
       });
 
       if (existingUser) {
         return res.status(409).json({ msg: "Email already in use" });
+      }
+
+      const existingTutor = await TuterSchema.findOne({
+        email: cleanEmail,
+        loginUserId: { $ne: user._id },
+      });
+
+      if (existingTutor) {
+        return res.status(409).json({ msg: "Tutor email already in use" });
       }
 
       user.email = cleanEmail;
@@ -583,34 +766,51 @@ export async function UPDATE_MY_PROFILE(req, res) {
     if (phone !== undefined) {
       const cleanPhone = String(phone).trim();
 
-      if (cleanPhone) {
-        const existingPhone = await UserSchema.findOne({
-          phone: cleanPhone,
-          _id: { $ne: req.user._id },
-        });
+      if (!cleanPhone) {
+        return res.status(400).json({ msg: "Phone number is required" });
+      }
 
-        if (existingPhone) {
-          return res.status(409).json({ msg: "Phone number already in use" });
-        }
+      const existingPhoneUser = await UserSchema.findOne({
+        phone: cleanPhone,
+        _id: { $ne: user._id },
+      });
+
+      if (existingPhoneUser) {
+        return res.status(409).json({ msg: "Phone number already in use" });
+      }
+
+      const existingPhoneTutor = await TuterSchema.findOne({
+        phone: cleanPhone,
+        loginUserId: { $ne: user._id },
+      });
+
+      if (existingPhoneTutor) {
+        return res.status(409).json({ msg: "Tutor phone already in use" });
       }
 
       user.phone = cleanPhone;
     }
 
     if (name !== undefined) {
-      user.name = name.trim();
+      const cleanName = String(name).trim();
+
+      if (!cleanName) {
+        return res.status(400).json({ msg: "Name is required" });
+      }
+
+      user.name = cleanName;
     }
 
     if (syllabus) {
       const allowedSyllabus = ["state", "cbse", "icse"];
 
-      if (!allowedSyllabus.includes(syllabus.toLowerCase())) {
+      if (!allowedSyllabus.includes(String(syllabus).toLowerCase())) {
         return res.status(400).json({
           msg: "Invalid syllabus. Choose state, cbse or icse",
         });
       }
 
-      user.syllabus = syllabus.toLowerCase();
+      user.syllabus = String(syllabus).toLowerCase();
     }
 
     if (photo !== undefined) {
@@ -618,6 +818,8 @@ export async function UPDATE_MY_PROFILE(req, res) {
     }
 
     await user.save();
+
+    await syncTutorProfile(user);
 
     return res.status(200).json({
       msg: "Profile updated successfully",
@@ -636,8 +838,6 @@ export async function UPDATE_MY_PROFILE(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
 
 
 
