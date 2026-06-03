@@ -23,16 +23,17 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
             set -e
             APP_DIR="/var/www/zindalern-backend"
 
-            mkdir -p $APP_DIR
-            cd $APP_DIR
+            mkdir -p \$APP_DIR
+            cd \$APP_DIR
 
             if [ ! -d ".git" ]; then
-              git clone git@github.com:job-zinda/zindalearnBackend.git .
+              git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/job-zinda/zindalearnBackend.git .
             else
+              git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/job-zinda/zindalearnBackend.git
               git reset --hard
               git pull origin main
             fi
