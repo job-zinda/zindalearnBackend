@@ -2071,6 +2071,49 @@ export async function GET_ALL_TUTERS_ADMIN(req, res) {
 
 
 
+// export async function GET_TUTERS_BY_COURSE(req, res) {
+//   try {
+//     const { courseId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(courseId)) {
+//       return res.status(400).json({ msg: "Invalid courseId" });
+//     }
+
+//     const tuters = await TuterSchema.find({
+//       isActive: true,
+//       $or: [
+//         { courseId },
+//         { courseIds: { $in: [courseId] } },
+//       ],
+//     })
+//       .populate("categoryId", "key title description image")
+//       .populate("categoryIds", "key title description image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .sort({ createdAt: -1 });
+
+//     const data = await Promise.all(
+//       tuters.map((tuter) => attachRatingAndReviews(tuter))
+//     );
+
+//     return res.status(200).json({
+//       msg: "Tutors fetched successfully",
+//       count: data.length,
+//       tuters: data,
+//     });
+//   } catch (err) {
+//     console.log("GET_TUTERS_BY_COURSE error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
 export async function GET_TUTERS_BY_COURSE(req, res) {
   try {
     const { courseId } = req.params;
@@ -2081,6 +2124,7 @@ export async function GET_TUTERS_BY_COURSE(req, res) {
 
     const tuters = await TuterSchema.find({
       isActive: true,
+      isBlocked: { $ne: true },
       $or: [
         { courseId },
         { courseIds: { $in: [courseId] } },
@@ -2106,8 +2150,6 @@ export async function GET_TUTERS_BY_COURSE(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
 
 
 
@@ -2659,6 +2701,7 @@ export async function GET_TUTERS_BY_CATEGORY(req, res) {
 
     const tuters = await TuterSchema.find({
       isActive: true,
+      isBlocked: { $ne: true },
       $or: [
         { categoryId },
         { categoryIds: { $in: [categoryId] } },
