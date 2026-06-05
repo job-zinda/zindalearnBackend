@@ -2122,14 +2122,26 @@ export async function GET_TUTERS_BY_COURSE(req, res) {
       return res.status(400).json({ msg: "Invalid courseId" });
     }
 
+    // const tuters = await TuterSchema.find({
+    //   isActive: true,
+    //   isBlocked: { $ne: true },
+    //   $or: [
+    //     { courseId },
+    //     { courseIds: { $in: [courseId] } },
+    //   ],
+    // })
+
+
+
+
     const tuters = await TuterSchema.find({
-      isActive: true,
-      isBlocked: { $ne: true },
-      $or: [
-        { courseId },
-        { courseIds: { $in: [courseId] } },
-      ],
-    })
+  isActive: { $in: [true, "true", 1] },
+  isBlocked: { $nin: [true, "true", 1] },
+  $or: [
+    { courseId },
+    { courseIds: { $in: [courseId] } },
+  ],
+})
       .populate("categoryId", "key title description image")
       .populate("categoryIds", "key title description image")
       .populate("courseId", "name description image sectionType categoryId")
