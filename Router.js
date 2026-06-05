@@ -167,4 +167,10 @@ rh.TOGGLE_STUDENT_BLOCK_STATUS_ADMIN
 
 
 
+router
+  .route("/admin/feedback/delete/:feedbackId")
+  .delete(Auth, adminOnly, rh.DELETE_FEEDBACK_ADMIN);
+
+
+
 export default router;

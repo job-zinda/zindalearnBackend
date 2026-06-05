@@ -4700,7 +4700,31 @@ export async function DELETE_MY_FEEDBACK(req, res) {
 
 
 
+export async function DELETE_FEEDBACK_ADMIN(req, res) {
+  try {
+    const { feedbackId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
+      return res.status(400).json({ msg: "Invalid feedback id" });
+    }
+
+    const feedback = await FeedbackSchema.findById(feedbackId);
+
+    if (!feedback) {
+      return res.status(404).json({ msg: "Feedback not found" });
+    }
+
+    await FeedbackSchema.findByIdAndDelete(feedbackId);
+
+    return res.status(200).json({
+      msg: "Feedback deleted successfully",
+      deletedFeedback: feedback,
+    });
+  } catch (err) {
+    console.log("DELETE_FEEDBACK_ADMIN error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
 
 
 
