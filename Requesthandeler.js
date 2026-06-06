@@ -3447,6 +3447,44 @@ export async function DELETE_STUDENT_ADMIN(req, res) {
 
 
 
+// export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
+//   try {
+//     const { tuterId } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(tuterId)) {
+//       return res.status(400).json({ msg: "Invalid tutor id" });
+//     }
+
+//     const tuter = await TuterSchema.findById(tuterId);
+
+//     if (!tuter) {
+//       return res.status(404).json({ msg: "Tutor not found" });
+//     }
+
+//     tuter.isActive = !tuter.isActive;
+//     await tuter.save();
+
+//     return res.status(200).json({
+//       msg: tuter.isActive
+//         ? "Tutor activated successfully"
+//         : "Tutor deactivated successfully",
+//       tuter,
+//     });
+//   } catch (err) {
+//     console.log("TOGGLE_TUTER_STATUS_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
 export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
   try {
     const { tuterId } = req.params;
@@ -3461,8 +3499,31 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
       return res.status(404).json({ msg: "Tutor not found" });
     }
 
-    tuter.isActive = !tuter.isActive;
+    const nextActiveStatus = !tuter.isActive;
+
+    if (nextActiveStatus === true && !hasTutorRequiredSelection(tuter)) {
+      return res.status(400).json({
+        msg: "Tutor active aakkan at least one category and one course required",
+        needProfileCompletion: true,
+        tuter,
+      });
+    }
+
+    tuter.isActive = nextActiveStatus;
     await tuter.save();
+
+    if (tuter.loginUserId) {
+      await UserSchema.findByIdAndUpdate(tuter.loginUserId, {
+        $set: {
+          isBlocked: tuter.isBlocked === true,
+          /*
+            User isActive true തന്നെ വയ്ക്കുന്നു.
+            Public tutor active/deactive TuterSchema.isActive ആണ് control ചെയ്യുന്നത്.
+          */
+          isActive: true,
+        },
+      });
+    }
 
     return res.status(200).json({
       msg: tuter.isActive
@@ -3475,7 +3536,6 @@ export async function TOGGLE_TUTER_STATUS_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
 
 
 
@@ -5448,7 +5508,259 @@ export async function GET_MY_TUTOR_ABOUT(req, res) {
 
 
 
-// Logged-in tutor can update own about/profile
+// // Logged-in tutor can update own about/profile
+// export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
+//   try {
+//     if (req.user.role !== "tutor") {
+//       return res.status(403).json({ msg: "Only tutor can access this route" });
+//     }
+
+//     const tuter = await TuterSchema.findOne({ loginUserId: req.user._id });
+
+//     if (!tuter) {
+//       return res.status(404).json({
+//         msg: "Tutor profile not found",
+//       });
+//     }
+
+//     const {
+//       name,
+//       email,
+//       phone,
+//       qualification,
+//       about,
+//       subjects,
+//       syllabus,
+//     } = req.body;
+
+//     const categoryIds = parseTutorOwnCategoryIds(req.body);
+//     const courseIds = parseTutorOwnCourseIds(req.body);
+
+//     if (!name || !String(name).trim()) {
+//       return res.status(400).json({ msg: "Tutor name is required" });
+//     }
+
+//     if (!email || !String(email).trim()) {
+//       return res.status(400).json({ msg: "Tutor email is required" });
+//     }
+
+//     if (!phone || !String(phone).trim()) {
+//       return res.status(400).json({ msg: "Tutor phone is required" });
+//     }
+
+//     if (categoryIds.length === 0) {
+//       return res.status(400).json({
+//         msg: "At least one category is required",
+//       });
+//     }
+
+//     if (courseIds.length === 0) {
+//       return res.status(400).json({
+//         msg: "At least one course is required",
+//       });
+//     }
+
+//     if (!hasValidTutorOwnObjectIds(categoryIds)) {
+//       return res.status(400).json({ msg: "Invalid categoryIds" });
+//     }
+
+//     if (!hasValidTutorOwnObjectIds(courseIds)) {
+//       return res.status(400).json({ msg: "Invalid courseIds" });
+//     }
+
+//     const cleanEmail = String(email).toLowerCase().trim();
+//     const cleanPhone = String(phone).trim();
+
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+//     if (!emailRegex.test(cleanEmail)) {
+//       return res.status(400).json({
+//         msg: "Please enter a valid tutor email address",
+//       });
+//     }
+
+//     const existingUserEmail = await UserSchema.findOne({
+//       email: cleanEmail,
+//       _id: { $ne: req.user._id },
+//     });
+
+//     if (existingUserEmail) {
+//       return res.status(409).json({ msg: "Email already in use" });
+//     }
+
+//     const existingUserPhone = await UserSchema.findOne({
+//       phone: cleanPhone,
+//       _id: { $ne: req.user._id },
+//     });
+
+//     if (existingUserPhone) {
+//       return res.status(409).json({ msg: "Phone number already in use" });
+//     }
+
+//     const existingTutorEmail = await TuterSchema.findOne({
+//       email: cleanEmail,
+//       _id: { $ne: tuter._id },
+//     });
+
+//     if (existingTutorEmail) {
+//       return res.status(409).json({ msg: "Tutor email already in use" });
+//     }
+
+//     const existingTutorPhone = await TuterSchema.findOne({
+//       phone: cleanPhone,
+//       _id: { $ne: tuter._id },
+//     });
+
+//     if (existingTutorPhone) {
+//       return res.status(409).json({ msg: "Tutor phone already in use" });
+//     }
+
+//     const categories = await CategorySchema.find({
+//       _id: { $in: categoryIds },
+//       isActive: true,
+//     });
+
+//     if (categories.length !== categoryIds.length) {
+//       return res.status(404).json({
+//         msg: "One or more categories not found or inactive",
+//       });
+//     }
+
+//     const courses = await CourseSchema.find({
+//       _id: { $in: courseIds },
+//       isActive: true,
+//     });
+
+//     if (courses.length !== courseIds.length) {
+//       return res.status(404).json({
+//         msg: "One or more courses not found or inactive",
+//       });
+//     }
+
+//     const allowedCategorySet = new Set(categoryIds.map(String));
+
+//     const invalidCourse = courses.find(
+//       (course) => !allowedCategorySet.has(String(course.categoryId))
+//     );
+
+//     if (invalidCourse) {
+//       return res.status(400).json({
+//         msg: "Selected courses must belong to selected category",
+//       });
+//     }
+
+//     const onlineCategory = categories.find(
+//       (cat) => cat.key === "online_tuition"
+//     );
+
+//     let finalSyllabus = "none";
+//     let finalSectionType = "none";
+
+//     if (onlineCategory) {
+//       if (!syllabus || !String(syllabus).trim()) {
+//         return res.status(400).json({
+//           msg: "For Online Tuition, syllabus is required",
+//         });
+//       }
+
+//       finalSyllabus = String(syllabus).trim();
+
+//       const onlineCourseTypes = courses
+//         .filter(
+//           (course) => String(course.categoryId) === String(onlineCategory._id)
+//         )
+//         .map((course) => course.sectionType);
+
+//       if (
+//         onlineCourseTypes.includes("one_to_one") &&
+//         onlineCourseTypes.includes("batch")
+//       ) {
+//         finalSectionType = "both";
+//       } else if (onlineCourseTypes.includes("one_to_one")) {
+//         finalSectionType = "one_to_one";
+//       } else if (onlineCourseTypes.includes("batch")) {
+//         finalSectionType = "batch";
+//       } else {
+//         finalSectionType = "none";
+//       }
+//     }
+
+//     const uploadedPhoto = req.file ? getOwnTutorUploadedFileUrl(req.file) : "";
+
+//     const finalPhoto = uploadedPhoto || tuter.photo || "";
+
+
+
+//     tuter.name = String(name).trim();
+//     tuter.email = cleanEmail;
+//     tuter.phone = cleanPhone;
+//     tuter.qualification = qualification ? String(qualification).trim() : "";
+//     tuter.about = about ? String(about).trim() : "";
+//     tuter.subjects = parseTutorOwnSubjects(subjects);
+
+//     tuter.categoryId = categoryIds[0];
+//     tuter.categoryIds = categoryIds;
+
+//     tuter.courseId = courseIds[0];
+//     tuter.courseIds = courseIds;
+
+//     tuter.sectionType = finalSectionType;
+//     tuter.syllabus = finalSyllabus;
+//     tuter.photo = finalPhoto;
+
+//     await tuter.save();
+
+//     const user = await UserSchema.findById(req.user._id);
+
+//     if (user) {
+//       user.name = tuter.name;
+//       user.email = tuter.email;
+//       user.phone = tuter.phone;
+//       user.photo = finalPhoto;
+//       await user.save();
+//     }
+
+//     const updatedTutor = await TuterSchema.findById(tuter._id)
+//       .populate("categoryId", "key title image")
+//       .populate("categoryIds", "key title image")
+//       .populate("courseId", "name description image sectionType categoryId")
+//       .populate("courseIds", "name description image sectionType categoryId")
+//       .populate("loginUserId", "name email phone role photo isActive isBlocked");
+
+//     return res.status(200).json({
+//       msg: "Tutor about updated successfully",
+//       tuter: updatedTutor,
+//       user: user
+//         ? {
+//             id: user._id,
+//             name: user.name,
+//             email: user.email,
+//             phone: user.phone,
+//             role: user.role,
+//             photo: user.photo,
+//             isActive: user.isActive,
+//             isBlocked: user.isBlocked,
+//           }
+//         : null,
+//     });
+//   } catch (err) {
+//     console.log("UPDATE_MY_TUTOR_ABOUT error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
   try {
     if (req.user.role !== "tutor") {
@@ -5489,15 +5801,11 @@ export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
     }
 
     if (categoryIds.length === 0) {
-      return res.status(400).json({
-        msg: "At least one category is required",
-      });
+      return res.status(400).json({ msg: "At least one category is required" });
     }
 
     if (courseIds.length === 0) {
-      return res.status(400).json({
-        msg: "At least one course is required",
-      });
+      return res.status(400).json({ msg: "At least one course is required" });
     }
 
     if (!hasValidTutorOwnObjectIds(categoryIds)) {
@@ -5626,7 +5934,6 @@ export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
     }
 
     const uploadedPhoto = req.file ? getOwnTutorUploadedFileUrl(req.file) : "";
-
     const finalPhoto = uploadedPhoto || tuter.photo || "";
 
     tuter.name = String(name).trim();
@@ -5646,6 +5953,16 @@ export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
     tuter.syllabus = finalSyllabus;
     tuter.photo = finalPhoto;
 
+    const hasCategoryAndCourse =
+      Array.isArray(tuter.categoryIds) &&
+      tuter.categoryIds.length > 0 &&
+      Array.isArray(tuter.courseIds) &&
+      tuter.courseIds.length > 0;
+
+    if (hasCategoryAndCourse) {
+      tuter.isActive = true;
+    }
+
     await tuter.save();
 
     const user = await UserSchema.findById(req.user._id);
@@ -5654,7 +5971,9 @@ export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
       user.name = tuter.name;
       user.email = tuter.email;
       user.phone = tuter.phone;
-      user.photo = finalPhoto;
+      user.photo = tuter.photo;
+      user.isActive = true;
+      user.isBlocked = tuter.isBlocked === true;
       await user.save();
     }
 
@@ -5683,6 +6002,298 @@ export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
     });
   } catch (err) {
     console.log("UPDATE_MY_TUTOR_ABOUT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// function makeInvitePassword() {
+//   return crypto.randomBytes(6).toString("base64url") + "A1!";
+// }
+
+// function hashInviteToken(token) {
+//   return crypto.createHash("sha256").update(token).digest("hex");
+// }
+
+function hasTutorRequiredSelection(tutor) {
+  const categoryIds = Array.isArray(tutor?.categoryIds) ? tutor.categoryIds : [];
+  const courseIds = Array.isArray(tutor?.courseIds) ? tutor.courseIds : [];
+
+  return categoryIds.length > 0 && courseIds.length > 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//invite tutor
+
+
+export async function INVITE_TUTOR_ADMIN(req, res) {
+  try {
+    const { name, email, phone } = req.body;
+
+    if (!name || !email || !phone) {
+      return res.status(400).json({
+        msg: "name, email and phone are required",
+      });
+    }
+
+    const cleanName = String(name).trim();
+    const cleanEmail = String(email).toLowerCase().trim();
+    const cleanPhone = String(phone).trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        msg: "Please enter a valid tutor email address",
+      });
+    }
+
+    const existingUser = await UserSchema.findOne({
+      $or: [{ email: cleanEmail }, { phone: cleanPhone }],
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        msg:
+          existingUser.email === cleanEmail
+            ? "Tutor already registered with this email"
+            : "Tutor already registered with this phone number",
+      });
+    }
+
+    const existingTutor = await TuterSchema.findOne({
+      $or: [{ email: cleanEmail }, { phone: cleanPhone }],
+    });
+
+    if (existingTutor) {
+      return res.status(409).json({
+        msg:
+          existingTutor.email === cleanEmail
+            ? "Tutor already exists with this email"
+            : "Tutor already exists with this phone number",
+      });
+    }
+
+    const tempPassword = makeInvitePassword();
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    const inviteToken = jwt.sign(
+      {
+        type: "tutor_invite",
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        tempPass: tempPassword,
+      },
+      process.env.JWT_TOKEN,
+      { expiresIn: "7d" }
+    );
+
+    const inviteLink = `${
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    }/invite-login?token=${encodeURIComponent(inviteToken)}`;
+
+    /*
+      Important:
+      User isActive true വേണം. അല്ലെങ്കിൽ tutor login ചെയ്യാൻ കഴിയില്ല.
+      Tuter isActive false ആക്കുന്നു. Category/course save ചെയ്താൽ മാത്രം public active ആവും.
+    */
+    const tutorLoginUser = await UserSchema.create({
+      name: cleanName,
+      email: cleanEmail,
+      phone: cleanPhone,
+      pass: hashedPassword,
+      role: "tutor",
+      isActive: true,
+      isBlocked: false,
+      invitedBy: req.user._id,
+      inviteTokenHash: hashInviteToken(inviteToken),
+      inviteTokenExpires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      inviteAcceptedAt: null,
+    });
+
+    const tuter = await TuterSchema.create({
+      name: cleanName,
+      email: cleanEmail,
+      phone: cleanPhone,
+
+      qualification: "",
+      about: "",
+      subjects: [],
+
+      categoryId: null,
+      categoryIds: [],
+
+      courseId: null,
+      courseIds: [],
+
+      sectionType: "none",
+      syllabus: "none",
+      photo: "",
+
+      loginUserId: tutorLoginUser._id,
+      loginPasswordText: tempPassword,
+
+      isActive: false,
+      isBlocked: false,
+      invitedBy: req.user._id,
+      createdBy: req.user._id,
+    });
+
+    let mailSent = true;
+    let mailErrorMessage = null;
+
+    try {
+      await sendStudentInviteMail({
+        to: cleanEmail,
+        name: cleanName,
+        inviteLink,
+        role: "tutor",
+      });
+    } catch (mailError) {
+      mailSent = false;
+      mailErrorMessage = mailError.message;
+      console.log("Tutor invite mail failed:", mailError.message);
+    }
+
+    return res.status(201).json({
+      msg: mailSent
+        ? "Tutor invited successfully"
+        : "Tutor created, but invite mail failed",
+      mailSent,
+      mailError: mailErrorMessage,
+      tuter,
+      inviteLink,
+      tempPassword,
+    });
+  } catch (err) {
+    console.log("INVITE_TUTOR_ADMIN error:", err.message);
+    return res.status(500).json({
+      msg: "Failed to invite tutor",
+      error: err.message,
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//verify tutor invite
+
+
+export async function VERIFY_TUTOR_INVITE(req, res) {
+  try {
+    const { inviteToken } = req.params;
+
+    if (!inviteToken) {
+      return res.status(400).json({ msg: "Invite token is required" });
+    }
+
+    let decoded;
+
+    try {
+      decoded = jwt.verify(inviteToken, process.env.JWT_TOKEN);
+    } catch {
+      return res.status(400).json({ msg: "Invalid or expired invite link" });
+    }
+
+    if (decoded?.type !== "tutor_invite") {
+      return res.status(400).json({ msg: "Invalid tutor invite link" });
+    }
+
+    const cleanEmail = String(decoded.email || "").toLowerCase().trim();
+
+    const user = await UserSchema.findOne({
+      email: cleanEmail,
+      role: "tutor",
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: "Tutor invite user not found" });
+    }
+
+    if (
+      user.inviteTokenHash &&
+      user.inviteTokenHash !== hashInviteToken(inviteToken)
+    ) {
+      return res.status(400).json({ msg: "Invalid invite token" });
+    }
+
+    if (
+      user.inviteTokenExpires &&
+      new Date(user.inviteTokenExpires).getTime() < Date.now()
+    ) {
+      return res.status(400).json({ msg: "Invite link expired" });
+    }
+
+    user.inviteAcceptedAt = new Date();
+    await user.save();
+
+    return res.status(200).json({
+      msg: "Tutor invite verified",
+      loginData: {
+        email: user.email,
+        pass: decoded.tempPass,
+        role: "tutor",
+      },
+    });
+  } catch (err) {
+    console.log("VERIFY_TUTOR_INVITE error:", err.message);
     return res.status(500).json({ error: err.message });
   }
 }

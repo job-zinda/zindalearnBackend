@@ -192,9 +192,16 @@ router
 
 
 
+// ================= TUTOR INVITE =================
+router
+  .route("/admin/tuter/invite")
+  .post(Auth, adminOnly, rh.INVITE_TUTOR_ADMIN);
+
+router
+  .route("/tutor/invite/:inviteToken")
+  .get(rh.VERIFY_TUTOR_INVITE);
 
 
 
-  
 
 export default router;

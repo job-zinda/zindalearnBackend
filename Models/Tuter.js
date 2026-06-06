@@ -128,31 +128,73 @@ const TuterSchema = new mongoose.Schema(
       trim: true,
     },
 
-    categoryId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
+    // categoryId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Category",
+    //   required: true,
+    // },
 
-    categoryIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-      },
-    ],
 
-    courseId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-    },
+categoryId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Category",
+  default: null,
+},
 
-    courseIds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Course",
-      },
-    ],
+
+
+    // categoryIds: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Category",
+    //   },
+    // ],
+
+
+
+categoryIds: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
+],
+
+
+
+
+    // courseId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Course",
+    //   required: true,
+    // },
+
+
+
+courseId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Course",
+  default: null,
+},
+
+
+
+    // courseIds: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Course",
+    //   },
+    // ],
+
+
+
+courseIds: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
+  },
+],
+
+
 
     sectionType: {
       type: String,
@@ -160,19 +202,49 @@ const TuterSchema = new mongoose.Schema(
       default: "none",
     },
 
-    loginUserId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
+    // loginUserId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "User",
+    //   default: null,
+    // },
 
-    loginPasswordText: {
-      type: String,
-      default: "",
-    },
 
-    isActive: { type: Boolean, default: true },
 
+loginUserId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
+
+
+
+    // loginPasswordText: {
+    //   type: String,
+    //   default: "",
+    // },
+
+
+
+loginPasswordText: {
+  type: String,
+  default: "",
+},
+
+
+    // isActive: { type: Boolean, default: true },
+
+
+
+    isActive: {
+  type: Boolean,
+  default: false,
+},
+
+
+// isBlocked: {
+//   type: Boolean,
+//   default: false,
+// },
 
 
 
@@ -181,6 +253,13 @@ isBlocked: {
   default: false,
 },
 
+
+
+invitedBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
 
 
     createdBy: {
