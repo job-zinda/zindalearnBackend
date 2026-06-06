@@ -160,46 +160,15 @@ const UserSchema = new mongoose.Schema(
   default: false,
 },
 
-    // invitedBy: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "User",
-    //   default: null,
-    // },
+    invitedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
-
-
-invitedBy: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  default: null,
-},
-
-
-    // inviteTokenHash: { type: String, default: null },
-
-
-inviteTokenHash: {
-  type: String,
-  default: "",
-},
-
-
-    // inviteTokenExpires: { type: Date, default: null },
-
-
-inviteTokenExpires: {
-  type: Date,
-  default: null,
-},
-
-    // inviteAcceptedAt: { type: Date, default: null },
-
-
-inviteAcceptedAt: {
-  type: Date,
-  default: null,
-},
-
+    inviteTokenHash: { type: String, default: null },
+    inviteTokenExpires: { type: Date, default: null },
+    inviteAcceptedAt: { type: Date, default: null },
 
     resetPasswordOtp: { type: String, default: null },
     resetPasswordOtpExpires: { type: Date, default: null },
