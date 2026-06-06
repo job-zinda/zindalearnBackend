@@ -5248,3 +5248,441 @@ export async function TOGGLE_STUDENT_BLOCK_STATUS_ADMIN(req, res) {
     });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//tutor add about section
+
+
+
+// ===================== TUTOR ABOUT / OWN PROFILE =====================
+
+function getOwnTutorUploadedFileUrl(file) {
+  if (!file) return "";
+  return String(file.secure_url || file.url || file.path || "").replace(/\\/g, "/");
+}
+
+function parseTutorOwnSubjects(subjects) {
+  if (!subjects) return [];
+
+  if (Array.isArray(subjects)) {
+    return subjects.map((s) => String(s).trim()).filter(Boolean);
+  }
+
+  return String(subjects)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function parseTutorOwnCategoryIds(body) {
+  const raw = body.categoryIds || body.categoryId || [];
+
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean).map(String);
+  }
+
+  return String(raw)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function parseTutorOwnCourseIds(body) {
+  const raw = body.courseIds || body.courseId || [];
+
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean).map(String);
+  }
+
+  return String(raw)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+function hasValidTutorOwnObjectIds(ids = []) {
+  return ids.every((id) => mongoose.Types.ObjectId.isValid(id));
+}
+
+
+
+
+
+
+
+
+
+
+
+// Tutor about page options: categories + courses
+export async function GET_TUTOR_ABOUT_OPTIONS(req, res) {
+  try {
+    if (req.user.role !== "tutor") {
+      return res.status(403).json({ msg: "Only tutor can access this route" });
+    }
+
+    const categories = await CategorySchema.find({ isActive: true })
+      .sort({ order: 1, createdAt: 1 })
+      .select("-__v");
+
+    const courses = await CourseSchema.find({ isActive: true })
+      .populate("categoryId", "key title image")
+      .sort({ order: 1, createdAt: -1 })
+      .select("-__v");
+
+    return res.status(200).json({
+      msg: "Tutor about options fetched successfully",
+      categories,
+      courses,
+    });
+  } catch (err) {
+    console.log("GET_TUTOR_ABOUT_OPTIONS error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+// Logged-in tutor own about/profile fetch
+export async function GET_MY_TUTOR_ABOUT(req, res) {
+  try {
+    if (req.user.role !== "tutor") {
+      return res.status(403).json({ msg: "Only tutor can access this route" });
+    }
+
+    const tuter = await TuterSchema.findOne({ loginUserId: req.user._id })
+      .populate("categoryId", "key title image")
+      .populate("categoryIds", "key title image")
+      .populate("courseId", "name description image sectionType categoryId")
+      .populate("courseIds", "name description image sectionType categoryId")
+      .populate("loginUserId", "name email phone role photo isActive isBlocked");
+
+    if (!tuter) {
+      return res.status(404).json({
+        msg: "Tutor profile not found",
+      });
+    }
+
+    return res.status(200).json({
+      msg: "Tutor about fetched successfully",
+      tuter,
+    });
+  } catch (err) {
+    console.log("GET_MY_TUTOR_ABOUT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+
+
+
+
+
+
+
+
+// Logged-in tutor can update own about/profile
+export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
+  try {
+    if (req.user.role !== "tutor") {
+      return res.status(403).json({ msg: "Only tutor can access this route" });
+    }
+
+    const tuter = await TuterSchema.findOne({ loginUserId: req.user._id });
+
+    if (!tuter) {
+      return res.status(404).json({
+        msg: "Tutor profile not found",
+      });
+    }
+
+    const {
+      name,
+      email,
+      phone,
+      qualification,
+      about,
+      subjects,
+      syllabus,
+    } = req.body;
+
+    const categoryIds = parseTutorOwnCategoryIds(req.body);
+    const courseIds = parseTutorOwnCourseIds(req.body);
+
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ msg: "Tutor name is required" });
+    }
+
+    if (!email || !String(email).trim()) {
+      return res.status(400).json({ msg: "Tutor email is required" });
+    }
+
+    if (!phone || !String(phone).trim()) {
+      return res.status(400).json({ msg: "Tutor phone is required" });
+    }
+
+    if (categoryIds.length === 0) {
+      return res.status(400).json({
+        msg: "At least one category is required",
+      });
+    }
+
+    if (courseIds.length === 0) {
+      return res.status(400).json({
+        msg: "At least one course is required",
+      });
+    }
+
+    if (!hasValidTutorOwnObjectIds(categoryIds)) {
+      return res.status(400).json({ msg: "Invalid categoryIds" });
+    }
+
+    if (!hasValidTutorOwnObjectIds(courseIds)) {
+      return res.status(400).json({ msg: "Invalid courseIds" });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+    const cleanPhone = String(phone).trim();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        msg: "Please enter a valid tutor email address",
+      });
+    }
+
+    const existingUserEmail = await UserSchema.findOne({
+      email: cleanEmail,
+      _id: { $ne: req.user._id },
+    });
+
+    if (existingUserEmail) {
+      return res.status(409).json({ msg: "Email already in use" });
+    }
+
+    const existingUserPhone = await UserSchema.findOne({
+      phone: cleanPhone,
+      _id: { $ne: req.user._id },
+    });
+
+    if (existingUserPhone) {
+      return res.status(409).json({ msg: "Phone number already in use" });
+    }
+
+    const existingTutorEmail = await TuterSchema.findOne({
+      email: cleanEmail,
+      _id: { $ne: tuter._id },
+    });
+
+    if (existingTutorEmail) {
+      return res.status(409).json({ msg: "Tutor email already in use" });
+    }
+
+    const existingTutorPhone = await TuterSchema.findOne({
+      phone: cleanPhone,
+      _id: { $ne: tuter._id },
+    });
+
+    if (existingTutorPhone) {
+      return res.status(409).json({ msg: "Tutor phone already in use" });
+    }
+
+    const categories = await CategorySchema.find({
+      _id: { $in: categoryIds },
+      isActive: true,
+    });
+
+    if (categories.length !== categoryIds.length) {
+      return res.status(404).json({
+        msg: "One or more categories not found or inactive",
+      });
+    }
+
+    const courses = await CourseSchema.find({
+      _id: { $in: courseIds },
+      isActive: true,
+    });
+
+    if (courses.length !== courseIds.length) {
+      return res.status(404).json({
+        msg: "One or more courses not found or inactive",
+      });
+    }
+
+    const allowedCategorySet = new Set(categoryIds.map(String));
+
+    const invalidCourse = courses.find(
+      (course) => !allowedCategorySet.has(String(course.categoryId))
+    );
+
+    if (invalidCourse) {
+      return res.status(400).json({
+        msg: "Selected courses must belong to selected category",
+      });
+    }
+
+    const onlineCategory = categories.find(
+      (cat) => cat.key === "online_tuition"
+    );
+
+    let finalSyllabus = "none";
+    let finalSectionType = "none";
+
+    if (onlineCategory) {
+      if (!syllabus || !String(syllabus).trim()) {
+        return res.status(400).json({
+          msg: "For Online Tuition, syllabus is required",
+        });
+      }
+
+      finalSyllabus = String(syllabus).trim();
+
+      const onlineCourseTypes = courses
+        .filter(
+          (course) => String(course.categoryId) === String(onlineCategory._id)
+        )
+        .map((course) => course.sectionType);
+
+      if (
+        onlineCourseTypes.includes("one_to_one") &&
+        onlineCourseTypes.includes("batch")
+      ) {
+        finalSectionType = "both";
+      } else if (onlineCourseTypes.includes("one_to_one")) {
+        finalSectionType = "one_to_one";
+      } else if (onlineCourseTypes.includes("batch")) {
+        finalSectionType = "batch";
+      } else {
+        finalSectionType = "none";
+      }
+    }
+
+    const uploadedPhoto = req.file ? getOwnTutorUploadedFileUrl(req.file) : "";
+
+    const finalPhoto = uploadedPhoto || tuter.photo || "";
+
+    tuter.name = String(name).trim();
+    tuter.email = cleanEmail;
+    tuter.phone = cleanPhone;
+    tuter.qualification = qualification ? String(qualification).trim() : "";
+    tuter.about = about ? String(about).trim() : "";
+    tuter.subjects = parseTutorOwnSubjects(subjects);
+
+    tuter.categoryId = categoryIds[0];
+    tuter.categoryIds = categoryIds;
+
+    tuter.courseId = courseIds[0];
+    tuter.courseIds = courseIds;
+
+    tuter.sectionType = finalSectionType;
+    tuter.syllabus = finalSyllabus;
+    tuter.photo = finalPhoto;
+
+    await tuter.save();
+
+    const user = await UserSchema.findById(req.user._id);
+
+    if (user) {
+      user.name = tuter.name;
+      user.email = tuter.email;
+      user.phone = tuter.phone;
+      user.photo = finalPhoto;
+      await user.save();
+    }
+
+    const updatedTutor = await TuterSchema.findById(tuter._id)
+      .populate("categoryId", "key title image")
+      .populate("categoryIds", "key title image")
+      .populate("courseId", "name description image sectionType categoryId")
+      .populate("courseIds", "name description image sectionType categoryId")
+      .populate("loginUserId", "name email phone role photo isActive isBlocked");
+
+    return res.status(200).json({
+      msg: "Tutor about updated successfully",
+      tuter: updatedTutor,
+      user: user
+        ? {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            photo: user.photo,
+            isActive: user.isActive,
+            isBlocked: user.isBlocked,
+          }
+        : null,
+    });
+  } catch (err) {
+    console.log("UPDATE_MY_TUTOR_ABOUT error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}

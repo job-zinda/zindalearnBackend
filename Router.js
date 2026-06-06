@@ -173,4 +173,22 @@ router
 
 
 
+
+
+
+
+  //tutorabout
+
+  // ================= TUTOR ABOUT / OWN PROFILE =================
+router
+  .route("/tutor/about/options")
+  .get(Auth, rh.GET_TUTOR_ABOUT_OPTIONS);
+
+router
+  .route("/tutor/about/me")
+  .get(Auth, rh.GET_MY_TUTOR_ABOUT)
+  .put(Auth, cloudinaryUpload.single("photo"), rh.UPDATE_MY_TUTOR_ABOUT);
+
+
+
 export default router;
