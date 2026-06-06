@@ -3240,10 +3240,35 @@ export async function GET_TUTERS_BY_CATEGORY(req, res) {
 
 
 
+// export async function GET_ALL_STUDENTS_ADMIN(req, res) {
+//   try {
+//     const students = await UserSchema.find({ role: "student" })
+//       .select("-pass -__v")
+//       .sort({ createdAt: -1 })
+//       .lean();
+
+//     return res.status(200).json({
+//       msg: "Students fetched successfully",
+//       count: students.length,
+//       students,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_STUDENTS_ADMIN error:", err);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
 export async function GET_ALL_STUDENTS_ADMIN(req, res) {
   try {
     const students = await UserSchema.find({ role: "student" })
-      .select("-pass -__v")
+      .select("name email phone role photo isActive isBlocked createdAt updatedAt")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -3257,8 +3282,6 @@ export async function GET_ALL_STUDENTS_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
 
 
 
