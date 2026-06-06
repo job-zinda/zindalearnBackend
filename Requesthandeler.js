@@ -3211,23 +3211,52 @@ export async function GET_TUTERS_BY_CATEGORY(req, res) {
 
 //student management
 // student management - get all students only
+
+
+
+
+
+
+// export async function GET_ALL_STUDENTS_ADMIN(req, res) {
+//   try {
+//     const users = await UserSchema.find({ role: "student" })
+//       .select("-pass")
+//       .sort({ createdAt: -1 });
+
+//     return res.status(200).json({
+//       msg: "All students fetched successfully",
+//       count: users.length,
+//       students: users,
+//     });
+//   } catch (err) {
+//     console.log("GET_ALL_USERS_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
 export async function GET_ALL_STUDENTS_ADMIN(req, res) {
   try {
-    const users = await UserSchema.find({ role: "student" })
-      .select("-pass")
-      .sort({ createdAt: -1 });
+    const students = await UserSchema.find({ role: "student" })
+      .select("-pass -__v")
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({
-      msg: "All students fetched successfully",
-      count: users.length,
-      students: users,
+      msg: "Students fetched successfully",
+      count: students.length,
+      students,
     });
   } catch (err) {
-    console.log("GET_ALL_USERS_ADMIN error:", err.message);
+    console.log("GET_ALL_STUDENTS_ADMIN error:", err);
     return res.status(500).json({ error: err.message });
   }
 }
-
 
 
 
