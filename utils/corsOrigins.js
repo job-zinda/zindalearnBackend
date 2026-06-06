@@ -124,6 +124,78 @@
 
 
 
+// function cleanOrigin(value) {
+//   return String(value || "").trim().replace(/\/+$/, "");
+// }
+
+// function parseOriginList(value) {
+//   if (!value || typeof value !== "string") return [];
+
+//   return value
+//     .split(",")
+//     .map((item) => cleanOrigin(item))
+//     .filter(Boolean);
+// }
+
+// function buildAllowedOrigins() {
+//   const envOrigins = [
+//     ...parseOriginList(process.env.FRONTEND_URL),
+//     ...parseOriginList(process.env.ADDITIONAL_CORS_ORIGINS),
+//   ];
+
+//   const defaultOrigins = [
+//     "http://localhost:5173",
+//     "http://localhost:3000",
+//     "https://www.zindaonlineschool.com",
+//     "https://zindaonlineschool.com",
+//     "https://zinda-learn-frontend.vercel.app",
+//     "https://jobzinda.vercel.app",
+//   ];
+
+//   return [...new Set([...defaultOrigins, ...envOrigins].map(cleanOrigin))];
+// }
+
+// export function isOriginAllowed(origin) {
+//   if (!origin) return true;
+
+//   const requestOrigin = cleanOrigin(origin);
+//   const allowedOrigins = buildAllowedOrigins();
+
+//   return allowedOrigins.includes(requestOrigin);
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function cleanOrigin(value) {
   return String(value || "").trim().replace(/\/+$/, "");
 }
@@ -137,29 +209,19 @@ function parseOriginList(value) {
     .filter(Boolean);
 }
 
-function buildAllowedOrigins() {
-  const envOrigins = [
-    ...parseOriginList(process.env.FRONTEND_URL),
-    ...parseOriginList(process.env.ADDITIONAL_CORS_ORIGINS),
-  ];
-
-  const defaultOrigins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://www.zindaonlineschool.com",
-    "https://zindaonlineschool.com",
-    "https://zinda-learn-frontend.vercel.app",
-    "https://jobzinda.vercel.app",
-  ];
-
-  return [...new Set([...defaultOrigins, ...envOrigins].map(cleanOrigin))];
-}
-
 export function isOriginAllowed(origin) {
   if (!origin) return true;
 
   const requestOrigin = cleanOrigin(origin);
-  const allowedOrigins = buildAllowedOrigins();
+
+  const allowedOrigins = [
+    "https://www.zindalearn.com",
+    "https://zindalearn.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    ...parseOriginList(process.env.FRONTEND_URL),
+    ...parseOriginList(process.env.ADDITIONAL_CORS_ORIGINS),
+  ].map(cleanOrigin);
 
   return allowedOrigins.includes(requestOrigin);
 }
