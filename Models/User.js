@@ -180,6 +180,6 @@ const UserSchema = new mongoose.Schema(
 );
 
 UserSchema.index({ role: 1, createdAt: -1 });
-UserSchema.index({ email: 1 }, { unique: true });
+// UserSchema.index({ email: 1 }, { unique: true });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

@@ -25,9 +25,28 @@ router.route("/user_forgoat_password_verify_otp").post(rh.FORGOT_PASSWORD_VERIFY
 router.route("/user_reset_password").post(rh.RESET_PASSWORD);
 
 // ================= PROFILE =================
-router.route("/upload_profile_photo").put(Auth, rh.UPLOAD_PROFILE_PHOTO);
+// router.route("/upload_profile_photo").put(Auth, rh.UPLOAD_PROFILE_PHOTO);
+// router.route("/update_my_profile").put(Auth, rh.UPDATE_MY_PROFILE);
+
+
+
+
+
+router
+  .route("/upload_profile_photo")
+  .put(Auth, cloudinaryUpload.single("photo"), rh.UPLOAD_PROFILE_PHOTO);
+
+router
+  .route("/update_my_profile")
+  .put(Auth, cloudinaryUpload.single("photo"), rh.UPDATE_MY_PROFILE);
+
+
+
+
+
+
+
 router.route("/my_profile").get(Auth, rh.GET_MY_PROFILE);
-router.route("/update_my_profile").put(Auth, rh.UPDATE_MY_PROFILE);
 router.route("/delete_my_account").delete(Auth, studentOnly, rh.DELETE_MY_ACCOUNT);
 
 // ================= BANNER =================
@@ -97,7 +116,14 @@ router.route("/student/invite/:inviteToken").get(rh.VERIFY_STUDENT_INVITE);
 // ================= STUDENT MANAGEMENT ADMIN =================
 router.route("/admin/student/all").get(Auth, adminOnly, rh.GET_ALL_STUDENTS_ADMIN);
 router.route("/admin/student/:userId").get(Auth, adminOnly, rh.GET_SINGLE_STUDENT_ADMIN);
-router.route("/admin/student/update/:userId").put(Auth, adminOnly, rh.UPDATE_STUDENT_ADMIN);
+// router.route("/admin/student/update/:userId").put(Auth, adminOnly, rh.UPDATE_STUDENT_ADMIN);
+
+
+router
+  .route("/admin/student/update/:userId")
+  .put(Auth, adminOnly, cloudinaryUpload.single("photo"), rh.UPDATE_STUDENT_ADMIN);
+
+
 router.route("/admin/student/delete/:userId").delete(Auth, adminOnly, rh.DELETE_STUDENT_ADMIN);
 
 // ================= CHAT =================

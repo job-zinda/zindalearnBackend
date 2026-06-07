@@ -24,6 +24,9 @@ const StudentTutorAssignSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+StudentTutorAssignSchema.index({ assignedBy: 1, createdAt: -1 });
+
 export default mongoose.model("StudentTutorAssign", StudentTutorAssignSchema);
 
 

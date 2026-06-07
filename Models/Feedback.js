@@ -24,5 +24,8 @@ const FeedbackSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+FeedbackSchema.index({ studentId: 1, createdAt: -1 });
+
 export default mongoose.models.Feedback ||
   mongoose.model("Feedback", FeedbackSchema);

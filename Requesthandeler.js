@@ -532,13 +532,50 @@ export async function RESET_PASSWORD(req, res) {
 
 
 
+// export async function UPLOAD_PROFILE_PHOTO(req, res) {
+//   try {
+//     const { photo } = req.body;
+
+//     if (!photo) {
+//       return res.status(400).json({ msg: "Photo is required" });
+//     }
+
+//     const updatedUser = await UserSchema.findByIdAndUpdate(
+//       req.user._id,
+//       { photo },
+//       { new: true }
+//     ).select("-pass");
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ msg: "User not found" });
+//     }
+
+//     await syncTutorProfile(updatedUser);
+
+//     return res.status(200).json({
+//       msg: "Profile photo uploaded successfully",
+//       user: updatedUser,
+//     });
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
 export async function UPLOAD_PROFILE_PHOTO(req, res) {
   try {
-    const { photo } = req.body;
-
-    if (!photo) {
-      return res.status(400).json({ msg: "Photo is required" });
+    if (!req.file) {
+      return res.status(400).json({ msg: "Photo file is required" });
     }
+
+    const photo = getUploadedFileUrl(req.file);
 
     const updatedUser = await UserSchema.findByIdAndUpdate(
       req.user._id,
@@ -560,10 +597,6 @@ export async function UPLOAD_PROFILE_PHOTO(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
 
 
 
@@ -720,9 +753,136 @@ async function syncTutorProfile(user) {
   );
 }
 
+// export async function UPDATE_MY_PROFILE(req, res) {
+//   try {
+//     const { name, email, phone, syllabus, photo } = req.body;
+
+//     const user = await UserSchema.findById(req.user._id);
+
+//     if (!user) {
+//       return res.status(404).json({ msg: "User not found" });
+//     }
+
+//     if (email !== undefined) {
+//       const cleanEmail = String(email).toLowerCase().trim();
+
+//       if (!cleanEmail) {
+//         return res.status(400).json({ msg: "Email is required" });
+//       }
+
+//       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//       if (!emailRegex.test(cleanEmail)) {
+//         return res.status(400).json({ msg: "Please enter a valid email address" });
+//       }
+
+//       const existingUser = await UserSchema.findOne({
+//         email: cleanEmail,
+//         _id: { $ne: user._id },
+//       });
+
+//       if (existingUser) {
+//         return res.status(409).json({ msg: "Email already in use" });
+//       }
+
+//       const existingTutor = await TuterSchema.findOne({
+//         email: cleanEmail,
+//         loginUserId: { $ne: user._id },
+//       });
+
+//       if (existingTutor) {
+//         return res.status(409).json({ msg: "Tutor email already in use" });
+//       }
+
+//       user.email = cleanEmail;
+//     }
+
+//     if (phone !== undefined) {
+//       const cleanPhone = String(phone).trim();
+
+//       if (!cleanPhone) {
+//         return res.status(400).json({ msg: "Phone number is required" });
+//       }
+
+//       const existingPhoneUser = await UserSchema.findOne({
+//         phone: cleanPhone,
+//         _id: { $ne: user._id },
+//       });
+
+//       if (existingPhoneUser) {
+//         return res.status(409).json({ msg: "Phone number already in use" });
+//       }
+
+//       const existingPhoneTutor = await TuterSchema.findOne({
+//         phone: cleanPhone,
+//         loginUserId: { $ne: user._id },
+//       });
+
+//       if (existingPhoneTutor) {
+//         return res.status(409).json({ msg: "Tutor phone already in use" });
+//       }
+
+//       user.phone = cleanPhone;
+//     }
+
+//     if (name !== undefined) {
+//       const cleanName = String(name).trim();
+
+//       if (!cleanName) {
+//         return res.status(400).json({ msg: "Name is required" });
+//       }
+
+//       user.name = cleanName;
+//     }
+
+//     if (syllabus) {
+//       const allowedSyllabus = ["state", "cbse", "icse"];
+
+//       if (!allowedSyllabus.includes(String(syllabus).toLowerCase())) {
+//         return res.status(400).json({
+//           msg: "Invalid syllabus. Choose state, cbse or icse",
+//         });
+//       }
+
+//       user.syllabus = String(syllabus).toLowerCase();
+//     }
+
+//     if (photo !== undefined) {
+//       user.photo = photo;
+//     }
+
+//     await user.save();
+
+//     await syncTutorProfile(user);
+
+//     return res.status(200).json({
+//       msg: "Profile updated successfully",
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone,
+//         role: user.role,
+//         photo: user.photo,
+//         isActive: user.isActive,
+//       },
+//     });
+//   } catch (err) {
+//     console.log("UPDATE_MY_PROFILE error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
+
 export async function UPDATE_MY_PROFILE(req, res) {
   try {
-    const { name, email, phone, syllabus, photo } = req.body;
+    const { name, email, phone, syllabus } = req.body;
 
     const user = await UserSchema.findById(req.user._id);
 
@@ -813,8 +973,9 @@ export async function UPDATE_MY_PROFILE(req, res) {
       user.syllabus = String(syllabus).toLowerCase();
     }
 
-    if (photo !== undefined) {
-      user.photo = photo;
+    // ✅ Cloudinary uploaded photo URL save ചെയ്യുന്നു
+    if (req.file) {
+      user.photo = getUploadedFileUrl(req.file);
     }
 
     await user.save();
@@ -838,16 +999,6 @@ export async function UPDATE_MY_PROFILE(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2019,9 +2170,9 @@ export async function GENERATE_TUTOR_PASSWORD(req, res) {
 
 export async function CREATE_TUTER(req, res) {
   try {
-    console.log("===== CREATE_TUTER HIT =====");
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+    // console.log("===== CREATE_TUTER HIT =====");
+    // console.log("BODY:", req.body);
+    // console.log("FILE:", req.file);
 
     const {
       name,
@@ -3384,10 +3535,79 @@ export async function GET_SINGLE_STUDENT_ADMIN(req, res) {
 
 
 
+// export async function UPDATE_STUDENT_ADMIN(req, res) {
+//   try {
+//     const { userId } = req.params;
+//     const { name, email, phone, photo } = req.body;
+
+//     if (!mongoose.Types.ObjectId.isValid(userId)) {
+//       return res.status(400).json({ msg: "Invalid userId" });
+//     }
+
+//     const user = await UserSchema.findOne({
+//       _id: userId,
+//       role: "student",
+//     });
+
+//     if (!user) {
+//       return res.status(404).json({ msg: "Student not found" });
+//     }
+
+//     // ✅ EMAIL DUPLICATE CHECK
+//     if (email && email !== user.email) {
+//       const existing = await UserSchema.findOne({
+//         email: email.toLowerCase().trim(),
+//         _id: { $ne: userId },
+//       });
+
+//       if (existing) {
+//         return res.status(409).json({ msg: "Email already exists" });
+//       }
+
+//       user.email = email.toLowerCase().trim();
+//     }
+
+//     // ✅ UPDATE FIELDS
+//     if (name !== undefined) user.name = name.trim();
+
+//     if (phone !== undefined) {
+//       user.phone = phone.trim();
+//     }
+
+//     if (photo !== undefined) {
+//       user.photo = photo;
+//     }
+
+//     await user.save();
+
+//     return res.status(200).json({
+//       msg: "Student updated successfully",
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone, // ✅ RETURN ALSO
+//         photo: user.photo,
+//         role: user.role,
+//       },
+//     });
+//   } catch (err) {
+//     console.log("UPDATE_STUDENT_ADMIN error:", err.message);
+//     return res.status(500).json({ error: err.message });
+//   }
+// }
+
+
+
+
+
+
+
+
 export async function UPDATE_STUDENT_ADMIN(req, res) {
   try {
     const { userId } = req.params;
-    const { name, email, phone, photo } = req.body;
+    const { name, email, phone } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ msg: "Invalid userId" });
@@ -3402,29 +3622,66 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
       return res.status(404).json({ msg: "Student not found" });
     }
 
-    // ✅ EMAIL DUPLICATE CHECK
-    if (email && email !== user.email) {
-      const existing = await UserSchema.findOne({
-        email: email.toLowerCase().trim(),
+    if (email !== undefined) {
+      const cleanEmail = String(email).toLowerCase().trim();
+
+      if (!cleanEmail) {
+        return res.status(400).json({ msg: "Email is required" });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ msg: "Please enter a valid email address" });
+      }
+
+      if (cleanEmail !== user.email) {
+        const existing = await UserSchema.findOne({
+          email: cleanEmail,
+          _id: { $ne: userId },
+        });
+
+        if (existing) {
+          return res.status(409).json({ msg: "Email already exists" });
+        }
+
+        user.email = cleanEmail;
+      }
+    }
+
+    if (name !== undefined) {
+      const cleanName = String(name).trim();
+
+      if (!cleanName) {
+        return res.status(400).json({ msg: "Name is required" });
+      }
+
+      user.name = cleanName;
+    }
+
+    if (phone !== undefined) {
+      const cleanPhone = String(phone).trim();
+
+      if (!cleanPhone) {
+        return res.status(400).json({ msg: "Phone number is required" });
+      }
+
+      const existingPhone = await UserSchema.findOne({
+        phone: cleanPhone,
         _id: { $ne: userId },
       });
 
-      if (existing) {
-        return res.status(409).json({ msg: "Email already exists" });
+      if (existingPhone) {
+        return res.status(409).json({ msg: "Phone number already exists" });
       }
 
-      user.email = email.toLowerCase().trim();
+      user.phone = cleanPhone;
     }
 
-    // ✅ UPDATE FIELDS
-    if (name !== undefined) user.name = name.trim();
-
-    if (phone !== undefined) {
-      user.phone = phone.trim();
-    }
-
-    if (photo !== undefined) {
-      user.photo = photo;
+    // ✅ Cloudinary uploaded photo URL save cheyyunnu
+    // ❌ req.body.photo/base64 save cheyyaruth
+    if (req.file) {
+      user.photo = getUploadedFileUrl(req.file);
     }
 
     await user.save();
@@ -3433,11 +3690,14 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
       msg: "Student updated successfully",
       user: {
         id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone, // ✅ RETURN ALSO
+        phone: user.phone,
         photo: user.photo,
         role: user.role,
+        isActive: user.isActive,
+        isBlocked: user.isBlocked,
       },
     });
   } catch (err) {
@@ -3445,15 +3705,6 @@ export async function UPDATE_STUDENT_ADMIN(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -5795,7 +6046,8 @@ export async function UPDATE_MY_TUTOR_ABOUT(req, res) {
       }
     }
 
-    const uploadedPhoto = req.file ? getOwnTutorUploadedFileUrl(req.file) : "";
+    // const uploadedPhoto = req.file ? getOwnTutorUploadedFileUrl(req.file) : "";
+    const uploadedPhoto = req.file ? getUploadedFileUrl(req.file) : "";
 
     const finalPhoto = uploadedPhoto || tuter.photo || "";
 
