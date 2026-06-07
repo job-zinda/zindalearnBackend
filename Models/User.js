@@ -173,8 +173,13 @@ const UserSchema = new mongoose.Schema(
     resetPasswordOtp: { type: String, default: null },
     resetPasswordOtpExpires: { type: Date, default: null },
     resetPasswordOtpVerified: { type: Boolean, default: false },
+
+    
   },
   { timestamps: true }
 );
+
+UserSchema.index({ role: 1, createdAt: -1 });
+UserSchema.index({ email: 1 }, { unique: true });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

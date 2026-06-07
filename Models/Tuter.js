@@ -191,4 +191,10 @@ isBlocked: {
   { timestamps: true }
 );
 
+
+TuterSchema.index({ createdAt: -1 });
+TuterSchema.index({ categoryId: 1 });
+TuterSchema.index({ courseId: 1 });
+TuterSchema.index({ loginUserId: 1 });
+
 export default mongoose.models.Tuter || mongoose.model("Tuter", TuterSchema);
