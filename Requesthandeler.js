@@ -882,7 +882,7 @@ async function syncTutorProfile(user) {
 
 export async function UPDATE_MY_PROFILE(req, res) {
   try {
-    const { name, email, phone, syllabus } = req.body;
+    const { name, email, phone, syllabus  } = req.body;
 
     const user = await UserSchema.findById(req.user._id);
 
