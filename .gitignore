@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment — real secrets only; .env.example stays tracked as documentation
+.env
+.env.local
+.env.*.local
+
+# Logs (PM2 writes these on EC2; also covers stray npm/yarn logs)
+logs/
+*.log
+
+# Local upload scratch space — multer writes here temporarily before Cloudinary
+# takes over; keep the folder (see uploads/.gitkeep) but not its contents
+uploads/*
+!uploads/.gitkeep
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/

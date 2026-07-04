@@ -1,0 +1,4380 @@
+{
+  "info": {
+    "name": "Zinda Learn API Collection",
+    "description": "Automatically compiled collection of all MERN LMS REST endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Student and Tutor session credentials and profile settings operations.",
+      "item": [
+        {
+          "name": "Register a new user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a new user profile with student or instructor roles.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"student\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate using email and password to receive a JWT.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "google-login"
+              ]
+            },
+            "description": "Log in or sign up using Google credentials/token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"google-oauth-token-string\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send verification OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/send-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "send-otp"
+              ]
+            },
+            "description": "Dispatches a login/verification OTP to the user's registered email.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "description": "Validates an OTP sent to the user email for password recovery or login.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get logged-in user profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Returns details about the currently authenticated user session.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update profile details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "profile"
+              ]
+            },
+            "description": "Modify bio, name, social links, or phone number of current user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"bio\": \"Updated Bio\",\n  \"phone\": \"+919999999999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password"
+              ]
+            },
+            "description": "Updates current user password by validating the old password.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"oldpassword123\",\n  \"newPassword\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "description": "Student activities, certificates, progress trackers, and settings.",
+      "item": [
+        {
+          "name": "GET endpoint for overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/progress/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "progress",
+                "overview"
+              ]
+            },
+            "description": "Performs operation on /api/student/progress/overview using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/progress/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "progress",
+                "courses"
+              ]
+            },
+            "description": "Performs operation on /api/student/progress/courses using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/progress/analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "progress",
+                "analytics"
+              ]
+            },
+            "description": "Performs operation on /api/student/progress/analytics using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for activity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/progress/activity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "progress",
+                "activity"
+              ]
+            },
+            "description": "Performs operation on /api/student/progress/activity using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "description": "Instructor specific payouts, stats, profile modifications, and settings.",
+      "item": [
+        {
+          "name": "Get payouts history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/payouts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "payouts"
+              ]
+            },
+            "description": "Retrieve previous instructor withdrawal distributions."
+          },
+          "response": []
+        },
+        {
+          "name": "Request payout withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/withdraw",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "withdraw"
+              ]
+            },
+            "description": "Submit a request to withdraw earned course points to bank/UPI accounts.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 10000,\n  \"paymentMethod\": \"upi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "reviews"
+              ]
+            },
+            "description": "Retrieve reviews with user reference detailed info."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "settings"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/settings using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "profile"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/profile using PUT method."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for avatar",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "avatar"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/avatar using PUT method."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for change-password",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "change-password"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/change-password using PUT method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for request-email-change",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/request-email-change",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "request-email-change"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/request-email-change using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for verify-email-otp",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/verify-email-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "verify-email-otp"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/verify-email-otp using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for logout-all",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/logout-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "logout-all"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/logout-all using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "List instructor courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/my-courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "my-courses"
+              ]
+            },
+            "description": "Fetch courses created by the authenticated instructor."
+          },
+          "response": []
+        },
+        {
+          "name": "Instructor dashboard statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "stats"
+              ]
+            },
+            "description": "Fetches total course sales, enrollment count, ratings, and revenue logs."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "students"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/students using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for course",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/course",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "course"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/course using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for :id",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/course/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "course",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/instructor/course/:id using PUT method."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for :id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/course/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "course",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/instructor/course/:id using DELETE method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for tickets",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/support/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "support",
+                "tickets"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/support/tickets using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/instructor/support/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "instructor",
+                "support",
+                "tickets"
+              ]
+            },
+            "description": "Performs operation on /api/instructor/support/tickets using GET method."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "description": "Curriculum creation, sections listing, and reviews comments.",
+      "item": [
+        {
+          "name": "Get reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:courseId/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":courseId",
+                "reviews"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                }
+              ]
+            },
+            "description": "Retrieve reviews with user reference detailed info."
+          },
+          "response": []
+        },
+        {
+          "name": "Create a review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:courseId/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":courseId",
+                "reviews"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                }
+              ]
+            },
+            "description": "Submit a review rating and text comment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"This course is amazing and helped me learn the concepts step by step.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modify course",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:courseId/reviews/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":courseId",
+                "reviews",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                },
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Update pricing, syllabus, cover thumbnails, or structure.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:courseId/reviews/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":courseId",
+                "reviews",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                },
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Remove course from index listings (Admin/Creator only).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modify course",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:courseId/reviews/:id/reply",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":courseId",
+                "reviews",
+                ":id",
+                "reply"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                },
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Update pricing, syllabus, cover thumbnails, or structure.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create a review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:courseId/reviews/:id/report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":courseId",
+                "reviews",
+                ":id",
+                "report"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                },
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Submit a review rating and text comment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"This course is amazing and helped me learn the concepts step by step.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add section",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Adds a course module section (Instructor/Admin only).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Getting Started\",\n  \"description\": \"Course introduction and setup instruction.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reorder elements",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/reorder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                "reorder"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Adjust positions of sections or lessons by list indices.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedIds\": [\n    \"sec1\",\n    \"sec2\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modify course",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                }
+              ]
+            },
+            "description": "Update pricing, syllabus, cover thumbnails, or structure.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                }
+              ]
+            },
+            "description": "Remove course from index listings (Admin/Creator only).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add section",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId/lessons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId",
+                "lessons"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                }
+              ]
+            },
+            "description": "Adds a course module section (Instructor/Admin only).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Getting Started\",\n  \"description\": \"Course introduction and setup instruction.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modify course",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId/lessons/:lessonId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId",
+                "lessons",
+                ":lessonId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                },
+                {
+                  "key": "lessonId",
+                  "value": "example_lessonId",
+                  "description": "Path parameter lessonId"
+                }
+              ]
+            },
+            "description": "Update pricing, syllabus, cover thumbnails, or structure.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId/lessons/:lessonId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId",
+                "lessons",
+                ":lessonId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                },
+                {
+                  "key": "lessonId",
+                  "value": "example_lessonId",
+                  "description": "Path parameter lessonId"
+                }
+              ]
+            },
+            "description": "Remove course from index listings (Admin/Creator only).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add section",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId/lessons/:lessonId/qa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId",
+                "lessons",
+                ":lessonId",
+                "qa"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                },
+                {
+                  "key": "lessonId",
+                  "value": "example_lessonId",
+                  "description": "Path parameter lessonId"
+                }
+              ]
+            },
+            "description": "Adds a course module section (Instructor/Admin only).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Getting Started\",\n  \"description\": \"Course introduction and setup instruction.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post Q&A response",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId/lessons/:lessonId/qa/:qaId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId",
+                "lessons",
+                ":lessonId",
+                "qa",
+                ":qaId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                },
+                {
+                  "key": "lessonId",
+                  "value": "example_lessonId",
+                  "description": "Path parameter lessonId"
+                },
+                {
+                  "key": "qaId",
+                  "value": "example_qaId",
+                  "description": "Path parameter qaId"
+                }
+              ]
+            },
+            "description": "Reply to a student query or modify existing query text.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answer\": \"You can configure CORS using standard middleware in Next.js.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create a review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/sections/:sectionId/lessons/:lessonId/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "sections",
+                ":sectionId",
+                "lessons",
+                ":lessonId",
+                "reviews"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "example_sectionId",
+                  "description": "Path parameter sectionId"
+                },
+                {
+                  "key": "lessonId",
+                  "value": "example_lessonId",
+                  "description": "Path parameter lessonId"
+                }
+              ]
+            },
+            "description": "Submit a review rating and text comment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"This course is amazing and helped me learn the concepts step by step.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List all courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses"
+              ]
+            },
+            "description": "Fetches list of published courses with pagination and category search filtering."
+          },
+          "response": []
+        },
+        {
+          "name": "Get course by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Fetch full curriculum modules and details of a single course."
+          },
+          "response": []
+        },
+        {
+          "name": "Create a course draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses"
+              ]
+            },
+            "description": "Initialize a course outline (title, summary, price, category).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Build SaaS Applications with MERN\",\n  \"description\": \"A comprehensive tutorial going from zero to production deployment.\",\n  \"price\": 4999,\n  \"category\": \"development\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modify course",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Update pricing, syllabus, cover thumbnails, or structure.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete course",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Remove course from index listings (Admin/Creator only).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit course for review",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/:id/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courses",
+                ":id",
+                "submit"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Change status to pending to request admin approval.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Enrollments",
+      "description": "Student courses enrollment history and progress updates.",
+      "item": [
+        {
+          "name": "Get enrolled courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments"
+              ]
+            },
+            "description": "Retrieve list of user course subscriptions and progress metrics.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update lesson progress",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/:id/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments",
+                ":id",
+                "progress"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Mark lessons as completed and track video timestamp parameters.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonId\": \"les102\",\n  \"completed\": true,\n  \"timestamp\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Instructor dashboard statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/instructor/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments",
+                "instructor",
+                "stats"
+              ]
+            },
+            "description": "Fetches total course sales, enrollment count, ratings, and revenue logs.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Enroll in a course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/enrollments/enroll",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "enrollments",
+                "enroll"
+              ]
+            },
+            "description": "Directly enroll into free courses or process enrollment confirmations.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"course_id_123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": "Razorpay and withdrawal order transactions details.",
+      "item": [
+        {
+          "name": "Initiate Razorpay checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payment/create-order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "create-order"
+              ]
+            },
+            "description": "Generates a signed Razorpay Order payload structure.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"course_id_123\",\n  \"couponCode\": \"ZINDANEW\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Razorpay signature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payment/verify-payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "verify-payment"
+              ]
+            },
+            "description": "Validate checkout hashes to finalize subscriber enrollment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razorpay_order_id\": \"order_Kp9tB2jD1k9pLw\",\n  \"razorpay_payment_id\": \"pay_Kp9uJ3f8H2kOpP\",\n  \"razorpay_signature\": \"f87aef2b...01e9d\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Certificates",
+      "description": "Issued credentials and achievement ratings.",
+      "item": [
+        {
+          "name": "GET endpoint for stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/certificates/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "certificates",
+                "stats"
+              ]
+            },
+            "description": "Performs operation on /api/student/certificates/stats using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for certificates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/certificates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "certificates"
+              ]
+            },
+            "description": "Performs operation on /api/student/certificates/ using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for featured",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/certificates/featured",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "certificates",
+                "featured"
+              ]
+            },
+            "description": "Performs operation on /api/student/certificates/featured using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for skills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/certificates/skills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "certificates",
+                "skills"
+              ]
+            },
+            "description": "Performs operation on /api/student/certificates/skills using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "description": "Realtime dialogue messaging details.",
+      "item": [
+        {
+          "name": "List conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/conversations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                "conversations"
+              ]
+            },
+            "description": "Retrieve all message conversation threads for the user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get eligible contacts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/eligible-contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                "eligible-contacts"
+              ]
+            },
+            "description": "List all students/teachers available to message."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for :conversationId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/:conversationId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                ":conversationId"
+              ],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": "example_conversationId",
+                  "description": "Path parameter conversationId"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/messages/:conversationId using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/:conversationId/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                ":conversationId",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": "example_conversationId",
+                  "description": "Path parameter conversationId"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/messages/:conversationId/read using PUT method."
+          },
+          "response": []
+        },
+        {
+          "name": "Send chat message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages"
+              ]
+            },
+            "description": "Dispatches a chat message to a conversation user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": \"rec_user_123\",\n  \"content\": \"Hello, I have a doubt in chapter 3.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Broadcast course update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/broadcast",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                "broadcast"
+              ]
+            },
+            "description": "Enables teachers to broadcast announcements to all course students.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"course_id_123\",\n  \"content\": \"Live session scheduled tomorrow at 5:00 PM.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Realtime updates notifications logs.",
+      "item": [
+        {
+          "name": "GET endpoint for notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ]
+            },
+            "description": "Performs operation on /api/notifications/ using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for unread-count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/unread-count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": "Performs operation on /api/notifications/unread-count using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for mark-all-read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/mark-all-read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "mark-all-read"
+              ]
+            },
+            "description": "Performs operation on /api/notifications/mark-all-read using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/:id/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                ":id",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/notifications/:id/read using PATCH method."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Live Classes",
+      "description": "WebRTC video and classroom scheduled meetings.",
+      "item": [
+        {
+          "name": "GET endpoint for all",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/instructor/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                "instructor",
+                "all"
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/instructor/all using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for all",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/student/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                "student",
+                "all"
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/student/all using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for student",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/student",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                "student"
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/student using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for :id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/:id using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule a live class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes"
+              ]
+            },
+            "description": "Creates a WebRTC live classroom session for student enrollment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"course_id_123\",\n  \"title\": \"Q&A and Code Review Session\",\n  \"scheduledTime\": \"2026-06-25T15:00:00.000Z\",\n  \"duration\": 60\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for :id",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/:id using PUT method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for :id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/:id using DELETE method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for start",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/:id/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                ":id",
+                "start"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/:id/start using PATCH method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for end",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/:id/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                ":id",
+                "end"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/live-classes/:id/end using PATCH method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule a live class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/live-classes/:id/join",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "live-classes",
+                ":id",
+                "join"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Creates a WebRTC live classroom session for student enrollment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"course_id_123\",\n  \"title\": \"Q&A and Code Review Session\",\n  \"scheduledTime\": \"2026-06-25T15:00:00.000Z\",\n  \"duration\": 60\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Video Calls",
+      "description": "Direct dynamic video links and tokens.",
+      "item": [
+        {
+          "name": "POST endpoint for signature",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/videos/signature",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "videos",
+                "signature"
+              ]
+            },
+            "description": "Performs operation on /api/videos/signature using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload assets",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/videos/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "videos",
+                "upload"
+              ]
+            },
+            "description": "Handles binary multiparts files uploads via Cloudinary adapters.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for videos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "videos"
+              ]
+            },
+            "description": "Performs operation on /api/videos/ using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for :id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/videos/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "videos",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/videos/:id using DELETE method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for :courseId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/videos/course/:courseId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "videos",
+                "course",
+                ":courseId"
+              ],
+              "variable": [
+                {
+                  "key": "courseId",
+                  "value": "example_courseId",
+                  "description": "Path parameter courseId"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/videos/course/:courseId using GET method."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Privileged operations for platform administration.",
+      "item": [
+        {
+          "name": "List pending tutor applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/instructors/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "instructors",
+                "pending"
+              ]
+            },
+            "description": "Retrieve registration profiles of instructors waiting for approval."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve tutor",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/instructor/:id/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "instructor",
+                ":id",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Enables student-to-instructor conversion and platform access."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for :id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/instructor/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "instructor",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/instructor/:id using DELETE method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "students"
+              ]
+            },
+            "description": "Performs operation on /api/admin/students using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/students/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "students",
+                "stats"
+              ]
+            },
+            "description": "Performs operation on /api/admin/students/stats using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for tutors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/tutors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "tutors"
+              ]
+            },
+            "description": "Performs operation on /api/admin/tutors using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "Suspend user profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/block",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                ":id",
+                "block"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Blocks profile auth tokens to suspend logins globally.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Inappropriate content sharing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for unblock",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/unblock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                ":id",
+                "unblock"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/users/:id/unblock using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for delete",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                ":id",
+                "delete"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/users/:id/delete using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for restore",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                ":id",
+                "restore"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/users/:id/restore using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses"
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for pending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                "pending"
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/pending using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for :id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/:id using DELETE method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                ":id",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/:id/status using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for approve",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/:id/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                ":id",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/:id/approve using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for decline",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/:id/decline",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                ":id",
+                "decline"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/:id/decline using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for block",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/:id/block",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                ":id",
+                "block"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/:id/block using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for unblock",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/courses/:id/unblock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "courses",
+                ":id",
+                "unblock"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/courses/:id/unblock using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin console analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard"
+              ]
+            },
+            "description": "Returns overall systems statistics (total users, payments, courses, tickets)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments"
+              ]
+            },
+            "description": "Performs operation on /api/admin/payments using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for payouts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/payouts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payouts"
+              ]
+            },
+            "description": "Performs operation on /api/admin/payouts using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/payouts/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payouts",
+                ":id",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/payouts/:id/status using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings"
+              ]
+            },
+            "description": "Performs operation on /api/admin/settings using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "Modify platform configuration",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "settings"
+              ]
+            },
+            "description": "Update systems parameters, maintenance toggles, and commission rates."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for grant",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/enrollments/grant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "enrollments",
+                "grant"
+              ]
+            },
+            "description": "Performs operation on /api/admin/enrollments/grant using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for :enrollmentId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/enrollments/:enrollmentId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "enrollments",
+                ":enrollmentId"
+              ],
+              "variable": [
+                {
+                  "key": "enrollmentId",
+                  "value": "example_enrollmentId",
+                  "description": "Path parameter enrollmentId"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/admin/enrollments/:enrollmentId using DELETE method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "enrollments"
+              ]
+            },
+            "description": "Performs operation on /api/admin/enrollments using GET method."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "description": "Unprotected endpoints visible to landing pages.",
+      "item": [
+        {
+          "name": "GET endpoint for stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/public/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "stats"
+              ]
+            },
+            "description": "Performs operation on /api/public/stats using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for testimonials",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/public/testimonials",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "testimonials"
+              ]
+            },
+            "description": "Performs operation on /api/public/testimonials using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/public/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "categories"
+              ]
+            },
+            "description": "Performs operation on /api/public/categories using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/public/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "settings"
+              ]
+            },
+            "description": "Performs operation on /api/public/settings using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "Create a support ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "tickets"
+              ]
+            },
+            "description": "Submit a user query for review by administrators.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Payment Failure\",\n  \"message\": \"My card was charged but course shows unpaid.\",\n  \"category\": \"payment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "tickets"
+              ]
+            },
+            "description": "Performs operation on /api/support/tickets using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for :id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/tickets/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "tickets",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/support/tickets/:id using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "Create a support ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/tickets/:id/replies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "tickets",
+                ":id",
+                "replies"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Submit a user query for review by administrators.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Payment Failure\",\n  \"message\": \"My card was charged but course shows unpaid.\",\n  \"category\": \"payment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/admin/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "admin",
+                "tickets"
+              ]
+            },
+            "description": "Performs operation on /api/support/admin/tickets using GET method."
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH endpoint for :id",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/admin/tickets/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "admin",
+                "tickets",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/support/admin/tickets/:id using PATCH method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for replies",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/support/admin/tickets/:id/replies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "admin",
+                "tickets",
+                ":id",
+                "replies"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "example_id",
+                  "description": "Path parameter id"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/support/admin/tickets/:id/replies using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Returns running health statistics of the backend application."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "description": "Multipart files and assets uploads.",
+      "item": [
+        {
+          "name": "Upload assets",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "upload"
+              ]
+            },
+            "description": "Handles binary multiparts files uploads via Cloudinary adapters.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": ""
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "description": "Notification settings and configurations toggles.",
+      "item": [
+        {
+          "name": "GET endpoint for settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/ using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET endpoint for subscription",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/subscription",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "subscription"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/subscription using GET method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "profile"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/profile using PUT method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for password",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "password"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/password using PUT method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for preferences",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/preferences",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "preferences"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/preferences using PUT method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT endpoint for notifications",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "notifications"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/notifications using PUT method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE endpoint for delete-account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/delete-account",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "delete-account"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/delete-account using DELETE method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for send-verification-email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/send-verification-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "send-verification-email"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/send-verification-email using POST method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for :token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/verify-email/:token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "verify-email",
+                ":token"
+              ],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "example_token",
+                  "description": "Path parameter token"
+                }
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/verify-email/:token using POST method."
+          },
+          "response": []
+        },
+        {
+          "name": "POST endpoint for toggle",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/settings/wishlist/toggle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "settings",
+                "wishlist",
+                "toggle"
+              ]
+            },
+            "description": "Performs operation on /api/student/settings/wishlist/toggle using POST method.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
