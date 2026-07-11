@@ -25,9 +25,8 @@ export const initSocket = (server) => {
       } catch (_) {}
     });
 
-  if (process.env.NODE_ENV === 'development') {
-    ['http://localhost:5173', 'http://localhost:5174'].forEach(o => originSet.add(o));
-  }
+  // Local dev origins — always allowed, see matching comment in app.js
+  ['http://localhost:5173', 'http://localhost:5174'].forEach(o => originSet.add(o));
 
   const allowedOrigins = [...originSet];
 

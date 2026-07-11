@@ -73,10 +73,11 @@ const buildAllowedOrigins = () => {
     } catch (_) { /* ignore invalid URLs */ }
   });
 
-  // Local dev origins — only included when NODE_ENV=development
-  if (process.env.NODE_ENV === 'development') {
-    ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'].forEach(o => origins.add(o));
-  }
+  // Local dev origins — always allowed so `npm run dev` can hit this backend
+  // regardless of which NODE_ENV this deployment runs under. Safe to keep on
+  // in production: CORS only gates browser JS, and every route still requires
+  // a valid bearer token.
+  ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'].forEach(o => origins.add(o));
 
   return origins;
 };
