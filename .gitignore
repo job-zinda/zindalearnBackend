@@ -6,6 +6,11 @@ node_modules/
 .env.local
 .env.*.local
 
+# Firebase service-account key downloads (Console names them like this,
+# and firebaseAdmin.js's local-dev fallback also expects config/serviceAccountKey.json)
+*firebase-adminsdk*.json
+serviceAccountKey.json
+
 # Logs (PM2 writes these on EC2; also covers stray npm/yarn logs)
 logs/
 *.log
