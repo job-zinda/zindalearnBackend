@@ -3,6 +3,7 @@ import Course from "../models/Course.js";
 import Review from "../models/Review.js";
 import mongoose from "mongoose";
 import SystemSettings from "../models/SystemSettings.js";
+import Banner from "../models/Banner.js";
 
 export const getLandingStats = async (req, res) => {
   try {
@@ -84,6 +85,15 @@ export const getLandingCategories = async (req, res) => {
       success: true,
       data: formattedCategories
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getActiveBanners = async (req, res) => {
+  try {
+    const banners = await Banner.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
+    res.status(200).json({ success: true, data: banners });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
