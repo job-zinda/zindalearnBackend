@@ -20,7 +20,15 @@ const lessonSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: ['upload', 'youtube', ''],
+    enum: ['upload', 'youtube', 'bunny', ''],
+    default: ''
+  },
+  bunnyVideoId: {
+    type: String, // Bunny.net Stream video GUID (when source === 'bunny')
+    default: ''
+  },
+  hlsUrl: {
+    type: String, // HLS manifest URL for adaptive streaming
     default: ''
   },
   duration: {

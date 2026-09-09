@@ -16,7 +16,7 @@ const videoSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: ['upload', 'youtube', 'vimeo'],
+    enum: ['upload', 'youtube', 'vimeo', 'bunny'],
     required: true
   },
   duration: {
@@ -40,6 +40,19 @@ const videoSchema = new mongoose.Schema({
   publicId: {
     type: String, // Cloudinary public_id
     required: function() { return this.source === 'upload'; }
+  },
+  bunnyVideoId: {
+    type: String, // Bunny.net Stream video GUID
+    required: function() { return this.source === 'bunny'; }
+  },
+  hlsUrl: {
+    type: String, // HLS manifest URL for adaptive streaming
+    default: ''
+  },
+  transcodingStatus: {
+    type: String, // Bunny transcoding status: processing, finished, error
+    enum: ['processing', 'transcoding', 'finished', 'error', ''],
+    default: ''
   },
   mimeType: String,
   fileSize: Number // in bytes

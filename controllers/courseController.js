@@ -454,6 +454,7 @@ export const addLesson = async (req, res) => {
 
     const { 
       title, description, videoUrl, duration, isFree, source,
+      bunnyVideoId, hlsUrl,
       overview, notes, resources, keyTakeaways, requiredTools, tests, difficultyLevel, estimatedDuration, tags
     } = req.body;
     if (!title || !title.trim()) {
@@ -465,6 +466,8 @@ export const addLesson = async (req, res) => {
       description: description?.trim() || '',
       videoUrl: videoUrl || '',
       source: source || '',
+      bunnyVideoId: bunnyVideoId || '',
+      hlsUrl: hlsUrl || '',
       duration: duration || 0,
       isFree: isFree || false,
       order: section.lessons.length,
@@ -500,12 +503,15 @@ export const updateLesson = async (req, res) => {
 
     const { 
       title, description, videoUrl, duration, isFree, source,
+      bunnyVideoId, hlsUrl,
       overview, notes, resources, keyTakeaways, requiredTools, tests, difficultyLevel, estimatedDuration, tags
     } = req.body;
     if (title !== undefined) lesson.title = title.trim();
     if (description !== undefined) lesson.description = description?.trim() || '';
     if (videoUrl !== undefined) lesson.videoUrl = videoUrl;
     if (source !== undefined) lesson.source = source;
+    if (bunnyVideoId !== undefined) lesson.bunnyVideoId = bunnyVideoId;
+    if (hlsUrl !== undefined) lesson.hlsUrl = hlsUrl;
     if (duration !== undefined) lesson.duration = duration;
     if (isFree !== undefined) lesson.isFree = isFree;
 
