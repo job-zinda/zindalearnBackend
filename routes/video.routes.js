@@ -14,7 +14,7 @@ import path from 'path';
 
 const upload = multer({
   dest: 'uploads/',
-  limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
+  limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2GB
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if (ext !== '.mp4' && ext !== '.webm' && ext !== '.mov') {
