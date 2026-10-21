@@ -66,7 +66,7 @@ router.post('/logout-all', logoutAllDevices);
 router.get('/my-courses', getInstructorCourses);
 router.get('/stats', getInstructorDashboardStats);
 router.get('/students', getInstructorStudents);
-router.post('/course', createCourse);
+router.post('/course', authorize('admin'), createCourse);
 router.put('/course/:id', updateCourse);
 router.delete('/course/:id', deleteCourse);
 

@@ -56,10 +56,9 @@ router.get('/', getCourses);
 router.get('/:id', optionalProtect, getCourse);
 
 // Instructor routes
-router.post('/', protect, isInstructor, isApprovedInstructor, createCourse);
+router.post('/', protect, authorize('admin'), createCourse);
 router.put('/:id', protect, authorize('instructor', 'admin'), updateCourse);
 router.delete('/:id', protect, isInstructor, isApprovedInstructor, deleteCourse);
 router.patch('/:id/submit', protect, isInstructor, isApprovedInstructor, submitCourse);
 
 export default router;
-
