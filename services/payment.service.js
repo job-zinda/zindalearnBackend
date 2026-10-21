@@ -7,6 +7,7 @@ const razorpay = new Razorpay({
 });
 
 export const paymentService = {
+  getPayment: (paymentId) => razorpay.payments.fetch(paymentId),
   /**
    * Create a new Razorpay order
    * @param {number} amount - Amount in paise (e.g., 500.00 -> 50000)

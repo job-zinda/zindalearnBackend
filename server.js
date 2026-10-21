@@ -3,6 +3,7 @@ import app from './app.js';
 import connectDB from './config/db.js';
 import { initSocket } from './sockets/index.js';
 import { startLiveClassScheduler } from './services/liveClassScheduler.js';
+import { startReferralCreditWorker } from './services/referral.service.js';
 
 // ─── Global error handlers — prevent PM2/Node process from dying on unhandled errors ──
 process.on('uncaughtException', (err) => {
@@ -30,4 +31,5 @@ const PORT = process.env.PORT || 5005;
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   startLiveClassScheduler();
+  startReferralCreditWorker();
 });

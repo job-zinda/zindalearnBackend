@@ -121,6 +121,11 @@ export const courseService = {
   },
 
   updateCourse: async (id, updateData, user) => {
+    if (user.role !== 'admin' && Object.hasOwn(updateData, 'referralCommissionPercent')) {
+      const error = new Error('Only administrators can set referral commission');
+      error.status = 403;
+      throw error;
+    }
     const course = await Course.findById(id);
     if (!course || course.isDeleted) return null;
 

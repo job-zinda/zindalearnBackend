@@ -54,6 +54,12 @@ export const getCourse = async (req, res) => {
 // Create course
 export const createCourse = async (req, res) => {
   try {
+    if (req.body.referralCommissionPercent !== undefined &&
+        (typeof req.body.referralCommissionPercent !== 'number' ||
+         !Number.isFinite(req.body.referralCommissionPercent) ||
+         req.body.referralCommissionPercent < 0 || req.body.referralCommissionPercent > 100)) {
+      return res.status(400).json({ success: false, message: "Referral commission must be between 0 and 100 percent" });
+    }
     if (!req.body.title || !req.body.title.trim()) {
       return res.status(400).json({ success: false, message: "Course title is required" });
     }
@@ -109,6 +115,16 @@ export const createCourse = async (req, res) => {
 // Update course
 export const updateCourse = async (req, res) => {
   try {
+    if (req.body.referralCommissionPercent !== undefined) {
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: "Only administrators can set referral commission" });
+      }
+      if (typeof req.body.referralCommissionPercent !== 'number' ||
+          !Number.isFinite(req.body.referralCommissionPercent) ||
+          req.body.referralCommissionPercent < 0 || req.body.referralCommissionPercent > 100) {
+        return res.status(400).json({ success: false, message: "Referral commission must be between 0 and 100 percent" });
+      }
+    }
     let { title, category } = req.body;
 
     // Normalize category if present
