@@ -19,6 +19,13 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'This course has been suspended' });
     }
 
+    const amount = course.discountPrice > 0 && course.discountPrice < course.price
+      ? course.discountPrice
+      : course.price;
+    if (amount === 0) {
+      return res.status(400).json({ success: false, message: 'This course is free. Use free enrollment instead.' });
+    }
+
     // 1. Check if user is already enrolled
     const existingEnrollment = await Enrollment.findOne({
       user: userId,
@@ -50,6 +57,8 @@ export const createOrder = async (req, res) => {
       user: userId,
       course: courseId,
       status: 'created',
+      amount,
+      currency: course.currency || 'INR',
       createdAt: { $gte: fiveMinutesAgo }
     });
 
@@ -67,13 +76,14 @@ export const createOrder = async (req, res) => {
     await Order.deleteMany({
       user: userId,
       course: courseId,
-      status: 'created'
+      status: 'created',
+      createdAt: { $lt: fiveMinutesAgo }
     });
 
     // Create Razorpay Order
     const receipt = `rcpt_${Date.now()}_${courseId.substring(0, 5)}`;
     const razorpayOrder = await paymentService.createRazorpayOrder(
-      course.price,
+      amount,
       course.currency || 'INR',
       receipt
     );
@@ -82,7 +92,7 @@ export const createOrder = async (req, res) => {
     const order = new Order({
       user: userId,
       course: courseId,
-      amount: course.price,
+      amount,
       currency: course.currency || 'INR',
       razorpayOrderId: razorpayOrder.id,
       status: 'created'

@@ -217,7 +217,7 @@ export const getInstructorStats = async (req, res) => {
   }
 };
 
-// @desc    Direct Enrollment (Free/No Payment Session)
+// @desc    Direct enrollment for free courses only
 // @route   POST /api/enrollments/enroll
 // @access  Private
 export const enrollInCourse = async (req, res) => {
@@ -227,6 +227,13 @@ export const enrollInCourse = async (req, res) => {
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    if (course.isBlocked) {
+      return res.status(400).json({ success: false, message: "This course has been suspended" });
+    }
+    if (course.price !== 0) {
+      return res.status(400).json({ success: false, message: "Payment is required to enroll in this course" });
     }
 
     // Check if already enrolled
